@@ -1,0 +1,41 @@
+<?php
+
+namespace Objectivehtml\MediaManager;
+
+use Objectivehtml\MediaManager\Jobs\RemoveModelFromDisk;
+
+class MediaObserver
+{
+
+    public function saving(Model $model)
+    {
+        if(!$model->size && $model->fileExists) {
+            $model->size = app(MediaService::class)->storage()->disk($model->disk)->size($model->relative_path) ?: 0;
+        }
+    }
+
+    public function creating(Model $model)
+    {
+        if($model->user && app()->auth()->user()) {
+            $model->user()->associate(app()->auth()->user());
+        }
+    }
+
+    public function created(Model $model)
+    {
+        if(is_null($model->getAttribute('directory'))) {
+            $model->directory = app(MediaService::class)->directory($model, $model->resource() ? $model->resource()->directoryStrategy() : null);
+            $model->save();
+        }
+
+        if(($resource = $model->resource()) && !$model->fileExists) {
+            app(MediaService::class)->storage()->disk($model->disk)->put($model->relative_path, $resource->getResource());
+        }
+    }
+
+    public function deleting(Model $model)
+    {
+        RemoveModelFromDisk::dispatch($model);
+    }
+
+}

@@ -1,0 +1,54 @@
+{
+    "name": "objectivehtml/laravel-media-manager",
+    "version": "0.1.0",
+    "description": "A simple media management package for Laravel.",
+    "keywords": ["media", "image", "video", "file", "management"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Justin Kimbrell",
+            "email": "justin@objectivehtml.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.1",
+        "fzaninotto/faker": "^1.8",
+        "intervention/image": "^2.4",
+        "intervention/imagecache": "^2.3",
+        "php-ffmpeg/binary-driver": "dev-master",
+        "php-ffmpeg/php-ffmpeg": "^0.11.1",
+        "league/color-extractor": "0.3.*"
+    },
+    "require-dev": {
+        "orchestra/testbench": "~3.6",
+        "mockery/mockery": "^1.1",
+        "phpunit/phpunit": "^7.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Objectivehtml\\MediaManager\\": "src/",
+            "Tests\\": "tests/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4" : {
+            "Tests\\": "tests"
+        }
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/PHP-FFMpeg/BinaryDriver.git"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "\\Objectivehtml\\MediaManager\\MediaServiceProvider"
+            ],
+            "aliases": {
+                "Media": "\\Objectivehtml\\MediaManager\\Facades\\Media"
+            }
+        }
+    }
+}
