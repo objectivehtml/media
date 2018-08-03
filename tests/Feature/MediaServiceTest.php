@@ -51,6 +51,8 @@ class MediaServiceTest extends TestCase
             ])
             ->save();
 
+        $model = $model::find($model->id);
+
         $this->assertNotNull($model->directory);
         $this->assertCount(3, $model->filters);
         $this->assertCount(1, $model->conversions);
@@ -58,8 +60,7 @@ class MediaServiceTest extends TestCase
 
         $this->assertArrayHasKey('custom_key', $model->meta->toArray());
         $this->assertGreaterThan(0, $model->children->count());
-
-        app(MediaService::class)->storage()->disk($model->disk)->assertExists($model->relative_path);
+        $this->assertGreaterThan(0, $model->meta->get('colors'));
 
         $model->children->each(function($child) {
             app(MediaService::class)->storage()->disk($child->disk)->assertExists($child->relative_path);

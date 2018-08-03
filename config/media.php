@@ -99,7 +99,10 @@ return [
 
         'extensions' => [
             'jpg', 'jpeg', 'png', 'gif', 'tif', 'bmp', 'ico', 'psd', 'webp'
-        ]
+        ],
+
+        // Extract the X most representative colors
+        'extract_colors' => 3
 
     ],
 

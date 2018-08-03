@@ -5,7 +5,7 @@ namespace Objectivehtml\MediaManager\Jobs;
 use Illuminate\Bus\Queueable;
 use League\ColorExtractor\Color;
 use League\ColorExtractor\Palette;
-use Objectivehtml\MediaManager\Image;
+use Objectivehtml\MediaManager\Model;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use League\ColorExtractor\ColorExtractor;
@@ -18,14 +18,17 @@ class ExtractColorPalette implements ShouldQueue
 
     protected $model;
 
+    protected $total;
+
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(Model $model)
+    public function __construct(Model $model, $total = 1)
     {
         $this->model = $model;
+        $this->total = $total;
     }
 
     /**
@@ -41,7 +44,13 @@ class ExtractColorPalette implements ShouldQueue
         // an extractor is built from a palette
         $extractor = new ColorExtractor($palette);
 
-        $this->model->meta('primary_color', Color::fromIntToHex($extractor->extract(1)[0]));
-        $this->model->save();
+        $colors = array_map(function($color) {
+            return Color::fromIntToHex($color);
+        }, $extractor->extract($this->total));
+
+        if(count($colors)) {
+            $this->model->meta('colors', $colors);
+            $this->model->save();
+        }
     }
 }

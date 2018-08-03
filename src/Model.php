@@ -484,7 +484,7 @@ class Model extends BaseModel
         static::created(function(Model $model) {
             $toDisk = app(MediaService::class)->config('disk');
 
-        if(($resource = $model->resource()) && !$model->fileExists) {
+            if(($resource = $model->resource()) && !$model->fileExists) {
                 $toDisk = $resource->disk() ?: $toDisk;
             }
 

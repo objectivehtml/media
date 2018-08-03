@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Objectivehtml\MediaManager\MediaService;
 use Objectivehtml\MediaManager\Support\Applyable;
 use Objectivehtml\MediaManager\Support\ApplyToImages;
+use Objectivehtml\MediaManager\Jobs\ExtractColorPalette;
 use Objectivehtml\MediaManager\Jobs\ResizeMaxDimensions;
 use Objectivehtml\MediaManager\Conversions\Image\Thumbnail;
 
@@ -15,13 +16,13 @@ class ImagePlugin extends Plugin {
 
     public function created(Model $model)
     {
-        /*
-        if($this->doesApplyToModel($model)) {
-            $model->meta('width', app(MediaService::class)->width($model->path));
-            $model->meta('height', app(MediaService::class)->height($model->path));
-            $model->save();
+        if(!$this->doesApplyToModel($model)) {
+            return;
         }
-        */
+
+        if(($total = app(MediaService::class)->config('image.extract_colors')) && !$model->meta('colors') && $model->fileExists) {
+            ExtractColorPalette::dispatch($model, $total);
+        }
     }
 
     public function jobs(Model $model): array

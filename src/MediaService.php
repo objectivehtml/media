@@ -234,6 +234,7 @@ class MediaService implements ConfigableInterface {
             'context' => $resource ? $resource->context() : null,
             'directory' => $resource ? $resource->directory() : null,
             'orig_filename' => $resource ? $resource->originalFilename() : null,
+            'extension' => $resource ? $resource->extension() : null,
             'mime' => $resource ? $resource->mime() : null,
             'size' => $resource ? $resource->size() : null,
             'filters' => $resource ? $resource->filters() : null,
