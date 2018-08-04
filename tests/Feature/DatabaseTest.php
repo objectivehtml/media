@@ -66,8 +66,11 @@ class DatabaseTest extends TestCase
             'f' => null
         ]);
 
+        $model->tag(1, 2, 3);
         $model->save();
+        $model->tag('image');
 
+        $this->assertCount(4, $model->tags);
         $this->assertArrayHasKey('b', $model->toArray()['meta']);
         $this->assertArrayHasKey('c', $model->toArray()['meta']);
         $this->assertArrayHasKey('d', $model->toArray()['meta']);

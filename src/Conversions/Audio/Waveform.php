@@ -14,6 +14,21 @@ class Waveform extends Conversion implements ConversionInterface {
 
     use ApplyToAudio;
 
+    public $width;
+
+    public $height;
+
+    public $colors = [
+        '#000000'
+    ];
+
+    public function __construct($width = 1024, $height = 300, array $colors = null)
+    {
+        $this->width = $width;
+        $this->height = $height;
+        $this->colors = $colors ?: $this->colors;
+    }
+
     public function apply(Model $model)
     {
         $audio = app(MediaService::class)->ffmpeg()->open($model->path);
@@ -22,13 +37,15 @@ class Waveform extends Conversion implements ConversionInterface {
             'context' => 'waveform',
             'disk' => $model->disk,
             'directory' => $model->directory,
+            'mime' => 'image/png',
             'extension' => 'png'
         ]);
 
         $child->parent()->associate($model);
 
         // Create the waveform
-        $waveform = $audio->waveform();
+        $waveform = $audio->waveform($this->width, $this->height, $this->colors);
+
         $waveform->save($child->path);
 
         $child->size = filesize($child->path);

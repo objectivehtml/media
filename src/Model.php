@@ -74,7 +74,7 @@ class Model extends BaseModel
         'ready' => 'bool',
         'filters' => 'array',
         'conversions' => 'array',
-        'tags' => 'array',
+        'tags' => 'collection',
         'meta' => 'collection',
     ];
 
@@ -180,6 +180,16 @@ class Model extends BaseModel
     public function getMetaAttribute($value)
     {
         return $this->castAttribute('meta', $value) ?: collect();
+    }
+
+    /**
+     * Get the tags attribute.
+     *
+     * @param $value
+     */
+    public function getTagsAttribute($value)
+    {
+        return $this->castAttribute('tags', $value) ?: collect();
     }
 
     /**
@@ -477,6 +487,38 @@ class Model extends BaseModel
     }
 
     /**
+     * Get and set meta key/value pairs
+     *
+     * @param $key
+     * @param $value
+     */
+    public function tag(...$tags): self
+    {
+        foreach($tags as $tag) {
+            if(!$this->tags->contains($tag)) {
+                $this->tags = $this->tags->push($tag);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Get and set meta key/value pairs
+     *
+     * @param $key
+     * @param $value
+     */
+    public function tags(array $tags): self
+    {
+        foreach($tags as $tag) {
+            $this->tag($tag);
+        }
+
+        return $this;
+    }
+
+    /**
      * The "booting" method of the model.
      *
      * @return void
@@ -490,6 +532,12 @@ class Model extends BaseModel
         foreach(app(MediaService::class)->plugins() as $plugin) {
             static::observe($plugin);
         }
+
+        static::saving(function(Model $model) {
+            if($model->mime) {
+                $model->tag(explode('/', $model->mime)[0]);
+            }
+        });
 
         static::created(function(Model $model) {
             $toDisk = app(MediaService::class)->config('disk');

@@ -13,6 +13,13 @@ class AudioPlugin extends Plugin {
 
     use Applyable, ApplyToAudio;
 
+    public function saving(Model $model)
+    {
+        if(!$this->doesApplyToModel($model)) {
+            return;
+        }
+    }
+
     public function conversions(Model $model): array
     {
         return app(MediaService::class)->config('audio.conversions') ?: [];

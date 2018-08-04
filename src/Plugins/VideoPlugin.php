@@ -14,6 +14,13 @@ class VideoPlugin extends Plugin {
 
     use Applyable, ApplyToVideo;
 
+    public function saving(Model $model)
+    {
+        if(!$this->doesApplyToModel($model)) {
+            return;
+        }
+    }
+
     public function created(Model $model)
     {
         if($this->doesApplyToModel($model)) {
