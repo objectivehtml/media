@@ -36,10 +36,8 @@ class VideoPlugin extends Plugin {
 
     public function jobs(Model $model): array
     {
-        $resource = $model->resource();
-
         return [
-            new PreserveOriginal($model, $resource ? $resource->preserveOriginal() : config('preserve_original'))
+            new PreserveOriginal($model, $model->resource() ? $model->resource()->preserveOriginal() : app(MediaService::class)->config('video.preserve'))
         ];
     }
 

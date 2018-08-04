@@ -4,8 +4,10 @@ namespace Tests\Feature;
 
 use Media;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
+use Objectivehtml\Media\Model;
 use Objectivehtml\Media\MediaService;
 use Illuminate\Contracts\Filesystem\Factory;
 use Intervention\Image\ImageManagerStatic as Image;
@@ -28,31 +30,34 @@ class MediaEndpointTest extends TestCase
 
     public function testStore()
     {
-        $this->be(app(\Illuminate\Foundation\Auth\User::class));
-
-        $response = $this->post('media', [
-            'file' => UploadedFile::fake()->image('test.jpg', $width = 10, $height = 10),
-            'meta' => [
-                'a' => 1,
-                'b' => 2,
-                'c' => 3,
-            ]
-        ]);
-
-        dd($response->getContent());
+        $response = $this
+            ->actingAs($this->user())
+            ->post('media', [
+                'file' => UploadedFile::fake()->image('test.jpg', $width = 10, $height = 10),
+                'meta' => [
+                    'a' => 1,
+                    'b' => 2,
+                    'c' => 3,
+                ]
+            ]);
 
         $response->assertStatus(200);
+
+        $model = Model::first();
+
+        $this->assertTrue($model->fileExists);
+        $this->assertCount(6, $model->meta);
     }
 
     public function testShow()
     {
-        $this->be(app(\Illuminate\Foundation\Auth\User::class));
-
         $model = app(MediaService::class)
             ->resource(UploadedFile::fake()->image('test.jpg', 10, 10))
             ->save();
 
-        $response = $this->get('media/'.$model->id);
+        $response = $this
+            ->actingAs($this->user())
+            ->get('media/'.$model->id);
 
         $response->assertStatus(200);
     }
@@ -64,7 +69,7 @@ class MediaEndpointTest extends TestCase
             ->save();
 
         $response = $this
-            ->actingAs(app(\Illuminate\Foundation\Auth\User::class))
+            ->actingAs($this->user())
             ->put('media/'.$model->id, [
                 'title' => 'test'
             ]);
@@ -76,14 +81,12 @@ class MediaEndpointTest extends TestCase
 
     public function testDelete()
     {
-        $this->be(app(\Illuminate\Foundation\Auth\User::class));
-
         $model = app(MediaService::class)
             ->resource(UploadedFile::fake()->image('test.jpg', 10, 10))
             ->save();
 
         $response = $this
-            ->actingAs(app(\Illuminate\Foundation\Auth\User::class))
+            ->actingAs($this->user())
             ->delete('media/'.$model->id);
 
         $response->assertStatus(200);

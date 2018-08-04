@@ -39,7 +39,7 @@ class ImagePlugin extends Plugin {
         $resource = $model->resource();
 
         return [
-            new PreserveOriginal($model, $resource ? $resource->preserveOriginal() : config('preserve_original')),
+            new PreserveOriginal($model, $resource ? $resource->preserveOriginal() :  app(MediaService::class)->config('image.preserve')),
             new ResizeMaxDimensions(
                 $model,
                 app(MediaService::class)->config('image.max_width'),

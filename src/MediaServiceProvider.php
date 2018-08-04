@@ -2,6 +2,7 @@
 
 namespace Objectivehtml\Media;
 
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Intervention\Image\ImageManagerStatic as Image;
 
@@ -40,8 +41,12 @@ class MediaServiceProvider extends ServiceProvider
 
         // Set the image configuration defaults.
         Image::configure([
-            'driver' => 'imagick'
+            'driver' => app(MediaService::class)->config('image.driver')
         ]);
+
+        if($policy = app(MediaService::class)->config('rest.policy')) {
+            Gate::policy(app(MediaService::class)->config('model'), $policy);
+        }
     }
 
     /**

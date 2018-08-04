@@ -4,11 +4,13 @@ use Objectivehtml\Media\Model;
 use Objectivehtml\Media\Plugins\AudioPlugin;
 use Objectivehtml\Media\Plugins\ImagePlugin;
 use Objectivehtml\Media\Plugins\VideoPlugin;
+use Objectivehtml\Media\Policies\MediaPolicy;
 use Objectivehtml\Media\Conversions\Audio\Waveform;
 use Objectivehtml\Media\Conversions\Image\Thumbnail;
 use Objectivehtml\Media\Strategies\FilenameStrategy;
 use Objectivehtml\Media\Strategies\DirectoryStrategy;
 use Objectivehtml\Media\Conversions\Video\EncodeForWeb;
+use Objectivehtml\Media\Http\Controllers\MediaController;
 use Objectivehtml\Media\Strategies\ObfuscatedDirectoryStrategy;
 
 return [
@@ -33,11 +35,6 @@ return [
     'temp' => [
         'disk' => config('MEDIA_TEMP_DISK', 'public')
     ],
-
-    /**
-     * Should preserve the original file by default.
-     */
-    'preserve_original' => true,
 
     /**
      * Should delete the empty directories when a model and its assets are
@@ -85,14 +82,14 @@ return [
      * The RESTful endpoint settings
      */
     'rest' => [
+
         // The request input key
         'key' => 'file',
 
-        // The endpoint resource slug
-        'endpoint' => 'media',
-
         // The resource api controller class
-        'controller' => 'Objectivehtml\\Media\\Http\\Controllers\\MediaController',
+        'controller' => MediaController::class,
+
+        'policy' => MediaPolicy::class,
 
         'rules' => [
 
@@ -114,6 +111,9 @@ return [
      */
 
     'image' => [
+
+        // Supports GD or Imagic
+        'driver' => 'imagick',
 
         // The maximum width for all images
         'max_width' => env('IMAGES_MAX_WIDTH', 2048),
@@ -150,7 +150,12 @@ return [
             // Max height width of the source image used to calculate the color.
             'max_height' => 600,
 
-        ]
+        ],
+
+        /**
+         * Should preserve the original image files (by default).
+         */
+        'preserve' => true,
 
     ],
 
@@ -178,7 +183,12 @@ return [
 
         'extensions' => [
             'mid', 'mp3', 'm4a', 'wav', 'pcm', 'aiff', 'aac', 'wma'
-        ]
+        ],
+
+        /**
+         * Should preserve the original audio files (by default).
+         */
+        'preserve' => true,
 
     ],
 
@@ -218,7 +228,12 @@ return [
             'width' => 1280,
             'height' => 720,
             'videoKbps' => 1500
-        ]]
+        ]],
+
+        /**
+         * Should preserve the original video files (by default).
+         */
+        'preserve' => true,
 
     ]
 
