@@ -1,14 +1,14 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Conversions\Audio;
+namespace Objectivehtml\Media\Conversions\Audio;
 
-use Objectivehtml\MediaManager\Model;
-use Objectivehtml\MediaManager\MediaService;
-use Objectivehtml\MediaManager\Conversions\Conversion;
+use Objectivehtml\Media\Model;
+use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Conversions\Conversion;
 use Intervention\Image\ImageManagerStatic as Image;
-use Objectivehtml\MediaManager\Contracts\StreamableResource;;
-use Objectivehtml\MediaManager\Contracts\Conversion as ConversionInterface;
-use Objectivehtml\MediaManager\Support\ApplyToAudio;
+use Objectivehtml\Media\Contracts\StreamableResource;;
+use Objectivehtml\Media\Contracts\Conversion as ConversionInterface;
+use Objectivehtml\Media\Support\ApplyToAudio;
 
 class Waveform extends Conversion implements ConversionInterface {
 

@@ -1,13 +1,13 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Plugins;
+namespace Objectivehtml\Media\Plugins;
 
 use FFMpeg\FFMpeg;
-use Illuminate\Database\Eloquent\Model;
-use Objectivehtml\MediaManager\MediaService;
+use Objectivehtml\Media\Model;
+use Objectivehtml\Media\MediaService;
 use FFMpeg\Exception\ExecutableNotFoundException;
-use Objectivehtml\MediaManager\Support\Applyable;
-use Objectivehtml\MediaManager\Support\ApplyToAudio;
+use Objectivehtml\Media\Support\Applyable;
+use Objectivehtml\Media\Support\ApplyToAudio;
 
 class AudioPlugin extends Plugin {
 

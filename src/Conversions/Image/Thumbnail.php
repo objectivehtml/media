@@ -1,15 +1,15 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Conversions\Image;
+namespace Objectivehtml\Media\Conversions\Image;
 
-use Objectivehtml\MediaManager\Model;
-use Objectivehtml\MediaManager\MediaService;
+use Objectivehtml\Media\Model;
+use Objectivehtml\Media\MediaService;
 use Intervention\Image\ImageManagerStatic as Image;
-use Objectivehtml\MediaManager\Filters\Image\Resize;
-use Objectivehtml\MediaManager\Support\ApplyToImages;
-use Objectivehtml\MediaManager\Conversions\Conversion;
-use Objectivehtml\MediaManager\Contracts\StreamableResource;
-use Objectivehtml\MediaManager\Contracts\Conversion as ConversionInterface;
+use Objectivehtml\Media\Filters\Image\Fit;
+use Objectivehtml\Media\Support\ApplyToImages;
+use Objectivehtml\Media\Conversions\Conversion;
+use Objectivehtml\Media\Contracts\StreamableResource;
+use Objectivehtml\Media\Contracts\Conversion as ConversionInterface;
 
 class Thumbnail extends Conversion implements ConversionInterface {
 
@@ -31,16 +31,14 @@ class Thumbnail extends Conversion implements ConversionInterface {
 
     public function apply(Model $model)
     {
-        $file = app(MediaService::class)->storage()->disk($model->disk)->get($model->relative_path);
-
-        $image = Image::make($file)->crop($this->width, $this->height, $this->x, $this->y);
-
-        $child = app(MediaService::class)
-            ->resource($image)
-            ->filter(new Resize(200, 200, true, true))
+        app(MediaService::class)
+            ->resource($model->path)
+            ->filters([
+                new Fit(100, 100)
+            ])
             ->context('thumbnail')
             ->convert($model, [
-                'size' => $image->filesize()
+                'extension' => $model->extension
             ]);
     }
 

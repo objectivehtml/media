@@ -8,18 +8,18 @@ use Exception;
 use Tests\TestCase;
 use Illuminate\Http\File;
 use Illuminate\Http\UploadedFile;
-use Objectivehtml\MediaManager\Model;
-use Objectivehtml\MediaManager\MediaService;
-use Objectivehtml\MediaManager\Filters\Image\Crop;
-use Objectivehtml\MediaManager\Filters\Image\Greyscale;
-use Objectivehtml\MediaManager\Conversions\Audio\Waveform;
+use Objectivehtml\Media\Model;
+use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Filters\Image\Crop;
+use Objectivehtml\Media\Filters\Image\Greyscale;
+use Objectivehtml\Media\Conversions\Audio\Waveform;
 
 class MediaResourceTest extends TestCase
 {
 
     public function testAddingFiltersToResourceFromFile()
     {
-        $file = UploadedFile::fake()->image('test.jpg', 3072, 2304);
+        $file = UploadedFile::fake()->image('test.jpg', 10, 10);
 
         $resource = app(MediaService::class)
             ->resource($file)
@@ -39,7 +39,7 @@ class MediaResourceTest extends TestCase
 
     public function testAddingTagsToResourceFromFile()
     {
-        $file = UploadedFile::fake()->image('test.jpg', 3072, 2304);
+        $file = UploadedFile::fake()->image('test.jpg', 10, 10);
 
         $resource = app(MediaService::class)
             ->resource($file)
@@ -57,7 +57,7 @@ class MediaResourceTest extends TestCase
 
     public function testAddingMetaToResourceFromFile()
     {
-        $file = UploadedFile::fake()->image('test.jpg', 3072, 2304);
+        $file = UploadedFile::fake()->image('test.jpg', 10, 10);
 
         $resource = app(MediaService::class)
             ->resource($file)
@@ -97,6 +97,36 @@ class MediaResourceTest extends TestCase
         $this->assertThat($resource->conversions()->count(), $this->equalTo(0));
     }
 
+    public function testResourceFromString()
+    {
+        $model = app(MediaService::class)
+            ->resource(__dir__ . '/../src/guitar.m4a')
+            ->directory('test')
+            ->save([
+                'filename' => 'test.m4a'
+            ]);
+
+        $this->assertTrue($model->fileExists);
+        $this->assertNotNull($model = $model->children()->context('waveform')->first());
+        $this->assertTrue($model->fileExists);
+    }
+
+    /*
+    public function testResourceFromUrl()
+    {
+        $model = app(MediaService::class)
+            ->resource('http://via.placeholder.com/350x150')
+            ->directory('test')
+            ->save([
+                'filename' => 'test.m4a'
+            ]);
+
+        $this->assertTrue($model->fileExists);
+        $this->assertNotNull($model = $model->children()->context('waveform')->first());
+        $this->assertTrue($model->fileExists);
+    }
+    */
+
     public function testAudioResourceFromFile()
     {
         $file = new File(__dir__ . '/../src/guitar.m4a');
@@ -105,10 +135,10 @@ class MediaResourceTest extends TestCase
             ->resource($file)
             ->save([
                 'directory' => 'test',
-                'size' => $file->getSize(),
                 'filename' => 'test.m4a'
             ]);
 
+        $this->assertThat($model->size, $this->equalTo($file->getSize()));
         $this->assertTrue($model->fileExists);
         $this->assertNotNull($model = $model->children()->context('waveform')->first());
         $this->assertTrue($model->fileExists);
@@ -125,7 +155,7 @@ class MediaResourceTest extends TestCase
                 'size' => $file->getSize(),
                 'filename' => 'test.mp4'
             ]);
-            
+
         $this->assertTrue($model->fileExists);
         $this->assertCount(5, $model->children);
     }

@@ -6,14 +6,14 @@ use Media;
 use Tests\TestCase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
-use Objectivehtml\MediaManager\MediaService;
+use Objectivehtml\Media\MediaService;
 use Illuminate\Contracts\Filesystem\Factory;
 use Intervention\Image\ImageManagerStatic as Image;
-use Objectivehtml\MediaManager\MediaServiceProvider;
-use Objectivehtml\MediaManager\Filters\Image\Crop;
-use Objectivehtml\MediaManager\Facades\Media as Facade;
-use Objectivehtml\MediaManager\Filters\Image\Greyscale;
-use Objectivehtml\MediaManager\Contracts\Strategy as StrategyInterface;
+use Objectivehtml\Media\MediaServiceProvider;
+use Objectivehtml\Media\Filters\Image\Crop;
+use Objectivehtml\Media\Facades\Media as Facade;
+use Objectivehtml\Media\Filters\Image\Greyscale;
+use Objectivehtml\Media\Contracts\Strategy as StrategyInterface;
 
 class MediaServiceTest extends TestCase
 {

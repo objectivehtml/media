@@ -1,13 +1,13 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Support;
+namespace Objectivehtml\Media\Support;
 
 use Illuminate\Support\Collection;
-use Objectivehtml\MediaManager\Model;
-use Objectivehtml\MediaManager\Conversions\Conversions;
-use Objectivehtml\MediaManager\Contracts\Conversion as ConversionInterface;
-use Objectivehtml\MediaManager\Contracts\Convertable as ConvertableInterface;
-use Objectivehtml\MediaManager\Contracts\StreamableResource as StreamableResourceInterface;
+use Objectivehtml\Media\Model;
+use Objectivehtml\Media\Conversions\Conversions;
+use Objectivehtml\Media\Contracts\Conversion as ConversionInterface;
+use Objectivehtml\Media\Contracts\Convertable as ConvertableInterface;
+use Objectivehtml\Media\Contracts\StreamableResource as StreamableResourceInterface;
 
 trait Convertable {
 

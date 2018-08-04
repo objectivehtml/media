@@ -1,5 +1,5 @@
 {
-    "name": "objectivehtml/laravel-media-manager",
+    "name": "objectivehtml/media",
     "version": "0.1.0",
     "description": "A simple media management package for Laravel.",
     "keywords": ["media", "image", "video", "file", "management"],
@@ -17,7 +17,8 @@
         "intervention/imagecache": "^2.3",
         "php-ffmpeg/binary-driver": "dev-master",
         "php-ffmpeg/php-ffmpeg": "^0.11.1",
-        "league/color-extractor": "0.3.*"
+        "league/color-extractor": "0.3.*",
+        "ralouphie/mimey": "^2.0"
     },
     "require-dev": {
         "orchestra/testbench": "~3.6",
@@ -26,7 +27,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Objectivehtml\\MediaManager\\": "src/",
+            "Objectivehtml\\Media\\": "src/",
             "Tests\\": "tests/"
         }
     },
@@ -44,10 +45,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "\\Objectivehtml\\MediaManager\\MediaServiceProvider"
+                "\\Objectivehtml\\Media\\MediaServiceProvider"
             ],
             "aliases": {
-                "Media": "\\Objectivehtml\\MediaManager\\Facades\\Media"
+                "Media": "\\Objectivehtml\\Media\\Facades\\Media"
             }
         }
     }

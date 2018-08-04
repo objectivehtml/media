@@ -1,15 +1,15 @@
 <?php
 
-namespace Objectivehtml\MediaManager;
+namespace Objectivehtml\Media;
 
-use Objectivehtml\MediaManager\Jobs\RemoveModelFromDisk;
+use Objectivehtml\Media\Jobs\RemoveModelFromDisk;
 
 class MediaObserver
 {
 
     public function saving(Model $model)
     {
-        if(!$model->size && $model->fileExists) {
+        if($model->fileExists) {
             $model->size = app(MediaService::class)->storage()->disk($model->disk)->size($model->relative_path) ?: 0;
         }
     }
@@ -35,6 +35,10 @@ class MediaObserver
 
     public function deleting(Model $model)
     {
+        foreach($model->children as $child) {
+            RemoveModelFromDisk::dispatch($child);
+        }
+
         RemoveModelFromDisk::dispatch($model);
     }
 

@@ -1,13 +1,14 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Plugins;
+namespace Objectivehtml\Media\Plugins;
 
 use FFMpeg\FFMpeg;
-use Illuminate\Database\Eloquent\Model;
-use Objectivehtml\MediaManager\MediaService;
+use Objectivehtml\Media\Model;
+use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Support\Applyable;
+use Objectivehtml\Media\Support\ApplyToVideo;
+use Objectivehtml\Media\Jobs\PreserveOriginal;
 use FFMpeg\Exception\ExecutableNotFoundException;
-use Objectivehtml\MediaManager\Support\Applyable;
-use Objectivehtml\MediaManager\Support\ApplyToVideo;
 
 class VideoPlugin extends Plugin {
 
@@ -29,6 +30,15 @@ class VideoPlugin extends Plugin {
                 $model->save();
             }
         }
+    }
+
+    public function jobs(Model $model): array
+    {
+        $resource = $model->resource();
+
+        return [
+            new PreserveOriginal($model, $resource ? $resource->preserveOriginal() : config('preserve_original'))
+        ];
     }
 
     public function conversions(Model $model): array

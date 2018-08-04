@@ -1,10 +1,12 @@
 <?php
 
-namespace Objectivehtml\MediaManager;
+namespace Objectivehtml\Media;
 
-use Illuminate\Support\ServiceProvider as BaseServiceProvider;
+use Illuminate\Support\ServiceProvider;
+use Intervention\Image\ImageManagerStatic as Image;
 
-class MediaServiceProvider extends BaseServiceProvider
+
+class MediaServiceProvider extends ServiceProvider
 {
     /**
      * Register bindings in the container.
@@ -35,6 +37,11 @@ class MediaServiceProvider extends BaseServiceProvider
         $this->publishes([
             __DIR__.'/../config/media.php' => config_path('media.php')
         ], 'config');
+
+        // Set the image configuration defaults.
+        Image::configure([
+            'driver' => 'imagick'
+        ]);
     }
 
     /**

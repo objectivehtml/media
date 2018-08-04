@@ -5,8 +5,8 @@ namespace Tests;
 use Queue;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManagerStatic as Image;
-use Objectivehtml\MediaManager\MediaServiceProvider;
-use Objectivehtml\MediaManager\Facades\Media as Facade;
+use Objectivehtml\Media\MediaServiceProvider;
+use Objectivehtml\Media\Facades\Media as Facade;
 
 class TestCase extends \Orchestra\Testbench\TestCase
 {

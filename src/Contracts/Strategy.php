@@ -1,8 +1,8 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Contracts;
+namespace Objectivehtml\Media\Contracts;
 
-use Illuminate\Database\Eloquent\Model;
+use Objectivehtml\Media\Model;
 
 interface Strategy
 {

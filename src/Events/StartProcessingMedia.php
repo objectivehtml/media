@@ -1,9 +1,9 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Events;
+namespace Objectivehtml\Media\Events;
 
 use Illuminate\Broadcasting\Channel;
-use Objectivehtml\MediaManager\Model;
+use Objectivehtml\Media\Model;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Broadcasting\PresenceChannel;

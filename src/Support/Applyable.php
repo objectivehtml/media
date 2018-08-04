@@ -1,8 +1,8 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Support;
+namespace Objectivehtml\Media\Support;
 
-use Objectivehtml\MediaManager\Model;
+use Objectivehtml\Media\Model;
 
 trait Applyable {
 

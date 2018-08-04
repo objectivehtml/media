@@ -1,6 +1,6 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Contracts;
+namespace Objectivehtml\Media\Contracts;
 
 use Illuminate\Support\Collection;
 

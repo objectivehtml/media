@@ -1,15 +1,15 @@
 <?php
 
-use Objectivehtml\MediaManager\Model;
-use Objectivehtml\MediaManager\Plugins\AudioPlugin;
-use Objectivehtml\MediaManager\Plugins\ImagePlugin;
-use Objectivehtml\MediaManager\Plugins\VideoPlugin;
-use Objectivehtml\MediaManager\Conversions\Audio\Waveform;
-use Objectivehtml\MediaManager\Conversions\Image\Thumbnail;
-use Objectivehtml\MediaManager\Strategies\FilenameStrategy;
-use Objectivehtml\MediaManager\Strategies\DirectoryStrategy;
-use Objectivehtml\MediaManager\Conversions\Video\EncodeForWeb;
-use Objectivehtml\MediaManager\Strategies\ObfuscatedDirectoryStrategy;
+use Objectivehtml\Media\Model;
+use Objectivehtml\Media\Plugins\AudioPlugin;
+use Objectivehtml\Media\Plugins\ImagePlugin;
+use Objectivehtml\Media\Plugins\VideoPlugin;
+use Objectivehtml\Media\Conversions\Audio\Waveform;
+use Objectivehtml\Media\Conversions\Image\Thumbnail;
+use Objectivehtml\Media\Strategies\FilenameStrategy;
+use Objectivehtml\Media\Strategies\DirectoryStrategy;
+use Objectivehtml\Media\Conversions\Video\EncodeForWeb;
+use Objectivehtml\Media\Strategies\ObfuscatedDirectoryStrategy;
 
 return [
 
@@ -38,6 +38,12 @@ return [
      * Should preserve the original file by default.
      */
     'preserve_original' => true,
+
+    /**
+     * Should delete the empty directories when a model and its assets are
+     * deleted.
+     */
+    'delete_directories' => true,
 
     /**
      * The installed plugins.
@@ -102,7 +108,7 @@ return [
         ],
 
         // Extract the X most representative colors
-        'extract_colors' => 3
+        'extract_colors' => 1
 
     ],
 

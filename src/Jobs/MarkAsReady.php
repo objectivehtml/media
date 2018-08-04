@@ -1,15 +1,15 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Jobs;
+namespace Objectivehtml\Media\Jobs;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Database\Eloquent\Model;
+use Objectivehtml\Media\Model;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Objectivehtml\MediaManager\MediaService;
-use Objectivehtml\MediaManager\Exceptions\CannotMoveModelException;
+use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Exceptions\CannotMoveModelException;
 
 class MarkAsReady implements ShouldQueue
 {

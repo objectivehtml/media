@@ -4,9 +4,9 @@ namespace Tests\Unit;
 
 use Media;
 use Tests\TestCase;
-use Objectivehtml\MediaManager\MediaService;
-use Objectivehtml\MediaManager\MediaServiceProvider;
-use Objectivehtml\MediaManager\Facades\Media as Facade;
+use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\MediaServiceProvider;
+use Objectivehtml\Media\Facades\Media as Facade;
 
 class MediaServiceProviderTest extends TestCase
 {

@@ -1,12 +1,12 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Resources;
+namespace Objectivehtml\Media\Resources;
 
 use Intervention\Image\Image;
-use Objectivehtml\MediaManager\Model;
+use Objectivehtml\Media\Model;
 use Illuminate\Http\Testing\File as FakeFile;
 use Symfony\Component\HttpFoundation\File\File;
-use Objectivehtml\MediaManager\Exceptions\InvalidResourceException;
+use Objectivehtml\Media\Exceptions\InvalidResourceException;
 
 class ImageResource extends StreamableResource {
 

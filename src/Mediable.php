@@ -1,6 +1,6 @@
 <?php
 
-namespace Objectivehtml\MediaManager;
+namespace Objectivehtml\Media;
 
 use Illuminate\Http\Request;
 

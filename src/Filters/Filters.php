@@ -1,9 +1,9 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Filters;
+namespace Objectivehtml\Media\Filters;
 
 use Illuminate\Support\Collection;
-use Objectivehtml\MediaManager\Contracts\Filter as FilterInterface;
+use Objectivehtml\Media\Contracts\Filter as FilterInterface;
 
 class Filters extends Collection {
 
@@ -22,10 +22,5 @@ class Filters extends Collection {
             }
         }
     }
-
-    public function apply($to)
-    {
-        dd('apply filter to', $to);
-    }
-
+    
 }

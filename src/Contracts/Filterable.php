@@ -1,9 +1,9 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Contracts;
+namespace Objectivehtml\Media\Contracts;
 
-use Objectivehtml\MediaManager\Filters\Filters;
-use Objectivehtml\MediaManager\Contracts\Filterable as FilterableInterface;
+use Objectivehtml\Media\Filters\Filters;
+use Objectivehtml\Media\Contracts\Filterable as FilterableInterface;
 
 interface Filterable {
 

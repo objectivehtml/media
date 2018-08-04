@@ -1,6 +1,6 @@
 <?php
 
-namespace Objectivehtml\MediaManager;
+namespace Objectivehtml\Media;
 
 use FFMpeg\FFMpeg;
 use FFMpeg\FFProbe;
@@ -8,18 +8,19 @@ use FFMpeg\Media\Video;
 use FFMpeg\Format\VideoInterface;
 use FFMpeg\Coordinate\TimeCode;
 use Intervention\Image\Image;
-use Objectivehtml\MediaManager\Model;
+use Objectivehtml\Media\Model;
 use Illuminate\Contracts\Filesystem\Factory;
 use Symfony\Component\HttpFoundation\File\File;
 use FFMpeg\FFProbe\DataMapping\StreamCollection;
 use Intervention\Image\ImageManagerStatic as Img;
-use Objectivehtml\MediaManager\Support\Configable;
-use Objectivehtml\MediaManager\Support\Pluginable;
-use Objectivehtml\MediaManager\Resources\FileResource;
-use Objectivehtml\MediaManager\Resources\ImageResource;
-use Objectivehtml\MediaManager\Contracts\StreamableResource;
-use Objectivehtml\MediaManager\Contracts\Strategy as StrategyInterface;
-use Objectivehtml\MediaManager\Contracts\Configable as ConfigableInterface;
+use Objectivehtml\Media\Support\Configable;
+use Objectivehtml\Media\Support\Pluginable;
+use Objectivehtml\Media\Resources\FileResource;
+use Objectivehtml\Media\Resources\ImageResource;
+use Objectivehtml\Media\Resources\RemoteResource;
+use Objectivehtml\Media\Contracts\StreamableResource;
+use Objectivehtml\Media\Contracts\Strategy as StrategyInterface;
+use Objectivehtml\Media\Contracts\Configable as ConfigableInterface;
 
 class MediaService implements ConfigableInterface {
 
@@ -132,10 +133,10 @@ class MediaService implements ConfigableInterface {
     /**
      * Extract a single frame from a video file at a specified time (in seconds).
      *
-     * @param  Objectivehtml\MediaManager\Model  $model
+     * @param  Objectivehtml\Media\Model  $model
      * @param  int  $timeInSeconds
      * @param  FFMpeg\Media\Video  $video
-     * @return Objectivehtml\MediaManager\Model
+     * @return Objectivehtml\Media\Model
      */
     public function extractFrame(Model $model, $timeInSeconds = 0, Video $video = null): Model
     {
@@ -292,6 +293,9 @@ class MediaService implements ConfigableInterface {
         }
         else if($file instanceof Image) {
             return new ImageResource($file);
+        }
+        else if(is_string($file) && file_exists($file)) {
+            return new FileResource(new File($file));
         }
 
         throw new Exceptions\InvalidResourceException;

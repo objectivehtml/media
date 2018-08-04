@@ -1,6 +1,6 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Contracts;
+namespace Objectivehtml\Media\Contracts;
 
 interface Configable {
 

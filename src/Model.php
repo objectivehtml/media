@@ -1,20 +1,20 @@
 <?php
 
-namespace Objectivehtml\MediaManager;
+namespace Objectivehtml\Media;
 
-use Objectivehtml\MediaManager\Filters\Filters;
-use Objectivehtml\MediaManager\Support\Metable;
+use Objectivehtml\Media\Filters\Filters;
+use Objectivehtml\Media\Support\Metable;
+use Objectivehtml\Media\Jobs\MarkAsReady;
+use Objectivehtml\Media\Jobs\ApplyFilters;
+use Objectivehtml\Media\Jobs\GenerateImages;
+use Objectivehtml\Media\Jobs\MoveModelToDisk;
+use Objectivehtml\Media\Jobs\ApplyConversions;
+use Objectivehtml\Media\Jobs\PreserveOriginal;
+use Objectivehtml\Media\Conversions\Conversions;
+use Objectivehtml\Media\Jobs\RemoveModelFromDisk;
+use Objectivehtml\Media\Jobs\StartProcessingMedia;
 use Illuminate\Database\Eloquent\Model as BaseModel;
-use Objectivehtml\MediaManager\Conversions\Conversions;
-use Objectivehtml\MediaManager\Contracts\StreamableResource;
-use Objectivehtml\MediaManager\Jobs\ApplyFilters;
-use Objectivehtml\MediaManager\Jobs\ApplyConversions;
-use Objectivehtml\MediaManager\Jobs\GenerateImages;
-use Objectivehtml\MediaManager\Jobs\PreserveOriginal;
-use Objectivehtml\MediaManager\Jobs\MarkAsReady;
-use Objectivehtml\MediaManager\Jobs\MoveModelToDisk;
-use Objectivehtml\MediaManager\Jobs\RemoveModelFromDisk;
-use Objectivehtml\MediaManager\Jobs\StartProcessingMedia;
+use Objectivehtml\Media\Contracts\StreamableResource;
 
 class Model extends BaseModel
 {
@@ -384,6 +384,16 @@ class Model extends BaseModel
     }
 
     /**
+     * Add a query scope for the original context
+     *
+     * @param $value
+     */
+    public function scopeOriginal($query)
+    {
+        $query->context('original');
+    }
+
+    /**
      * Add a query scope for the orig_filename attribute
      *
      * @param $value
@@ -489,18 +499,16 @@ class Model extends BaseModel
             }
 
             if($model->isParent() && $model->fileExists) {
-                StartProcessingMedia::withChain(collect([
-                    new PreserveOriginal($model, $resource ? $resource->preserveOriginal() : config('preserve_original')),
-                ])->concat(app(MediaService::class)->jobs($model)->concat([
+                StartProcessingMedia::withChain(app(MediaService::class)->jobs($model)->concat([
                     new ApplyConversions($model),
                     new ApplyFilters($model),
-                    new GenerateImages($model),
                     new MoveModelToDisk($model, $toDisk),
                     new MarkAsReady($model)
-                ])))->dispatch($model);
+                ]))->dispatch($model);
             }
             else if($model->fileExists) {
                 StartProcessingMedia::withChain([
+                    new ApplyFilters($model),
                     new MoveModelToDisk($model, $toDisk),
                     new MarkAsReady($model),
                 ])->dispatch($model);

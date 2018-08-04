@@ -1,14 +1,14 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Jobs;
+namespace Objectivehtml\Media\Jobs;
 
 use Illuminate\Bus\Queueable;
-use Objectivehtml\MediaManager\Model;
+use Objectivehtml\Media\Model;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Objectivehtml\MediaManager\Events\StartProcessingMedia as StartProcessingEvent;
+use Objectivehtml\Media\Events\StartProcessingMedia as StartProcessingEvent;
 
 class StartProcessingMedia implements ShouldQueue
 {

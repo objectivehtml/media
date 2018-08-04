@@ -1,9 +1,9 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Facades;
+namespace Objectivehtml\Media\Facades;
 
 use Illuminate\Support\Facades\Facade;
-use Objectivehtml\MediaManager\MediaService;
+use Objectivehtml\Media\MediaService;
 
 class Media extends Facade
 {

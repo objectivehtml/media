@@ -1,11 +1,11 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Jobs;
+namespace Objectivehtml\Media\Jobs;
 
 use Illuminate\Bus\Queueable;
 use League\ColorExtractor\Color;
 use League\ColorExtractor\Palette;
-use Objectivehtml\MediaManager\Model;
+use Objectivehtml\Media\Model;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use League\ColorExtractor\ColorExtractor;
@@ -41,6 +41,12 @@ class ExtractColorPalette implements ShouldQueue
         // Create a Palette instance from the model url
         $palette = Palette::fromFilename($this->model->path);
 
+        if(count($colors = $palette->getMostUsedColors($this->total))) {
+            $this->model->meta('colors', Color::fromIntToHex($color));
+            $this->model->save();
+        }
+
+        /*
         // an extractor is built from a palette
         $extractor = new ColorExtractor($palette);
 
@@ -52,5 +58,6 @@ class ExtractColorPalette implements ShouldQueue
             $this->model->meta('colors', $colors);
             $this->model->save();
         }
+        */
     }
 }

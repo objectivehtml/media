@@ -6,24 +6,24 @@ use PDOException;
 use Faker\Factory;
 use Tests\TestCase;
 use Illuminate\Http\UploadedFile;
-use Objectivehtml\MediaManager\Model;
-use Objectivehtml\MediaManager\MediaService;
+use Objectivehtml\Media\Model;
+use Objectivehtml\Media\MediaService;
 use Intervention\Image\ImageManagerStatic as Image;
-use Objectivehtml\MediaManager\Jobs\ApplyFilters;
-use Objectivehtml\MediaManager\Jobs\ApplyConversions;
-use Objectivehtml\MediaManager\Jobs\MoveModelToDisk;
-use Objectivehtml\MediaManager\Jobs\PreserveOriginal;
-use Objectivehtml\MediaManager\Jobs\RemoveModelFromDisk;
-use Objectivehtml\MediaManager\Jobs\ResizeMaxDimensions;
-use Objectivehtml\MediaManager\Filters\Image\Crop;
-use Objectivehtml\MediaManager\Filters\Image\Greyscale;
+use Objectivehtml\Media\Jobs\ApplyFilters;
+use Objectivehtml\Media\Jobs\ApplyConversions;
+use Objectivehtml\Media\Jobs\MoveModelToDisk;
+use Objectivehtml\Media\Jobs\PreserveOriginal;
+use Objectivehtml\Media\Jobs\RemoveModelFromDisk;
+use Objectivehtml\Media\Jobs\ResizeMaxDimensions;
+use Objectivehtml\Media\Filters\Image\Crop;
+use Objectivehtml\Media\Filters\Image\Greyscale;
 
 class JobsTest extends TestCase
 {
 
     public function testMoveFileToDisk()
     {
-        $file = UploadedFile::fake()->image('test.jpeg', 3072, 2304);
+        $file = UploadedFile::fake()->image('test.jpeg', 10, 10);
 
         $resource = app(MediaService::class)->resource($file);
 
@@ -73,7 +73,7 @@ class JobsTest extends TestCase
 
     public function testRemoveFileFromDisk()
     {
-        $file = UploadedFile::fake()->image('test.jpeg', 3072, 2304);
+        $file = UploadedFile::fake()->image('test.jpeg', 10, 10);
 
         $resource = app(MediaService::class)->resource($file);
 
@@ -94,7 +94,7 @@ class JobsTest extends TestCase
 
     public function testPreserveOriginal()
     {
-        $file = UploadedFile::fake()->image('test.jpeg', 3072, 2304);
+        $file = UploadedFile::fake()->image('test.jpeg', 10, 10);
 
         $model = app(MediaService::class)
             ->resource($file)
@@ -114,7 +114,7 @@ class JobsTest extends TestCase
 
     public function testApplyConversions()
     {
-        $file = UploadedFile::fake()->image('test.jpeg', 3072, 2304);
+        $file = UploadedFile::fake()->image('test.jpeg', 10, 10);
 
         $model = app(MediaService::class)
             ->resource($file)
@@ -122,8 +122,6 @@ class JobsTest extends TestCase
 
         $image = Image::make($model->path);
 
-        $this->assertThat($image->width(), $this->equalTo(2048));
-        $this->assertThat($image->height(), $this->equalTo(1536));
         $this->assertCount(app(MediaService::class)->conversions($model)->count() + 1, $model->children);
 
         $image = Image::make($model->children->last()->path);
@@ -136,7 +134,7 @@ class JobsTest extends TestCase
 
     public function testApplyFilters()
     {
-        $file = UploadedFile::fake()->image('test.jpeg', 3072, 2304);
+        $file = UploadedFile::fake()->image('test.jpeg', 200, 200);
 
         $model = app(MediaService::class)
             ->resource($file)

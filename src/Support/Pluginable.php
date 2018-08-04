@@ -1,12 +1,12 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Support;
+namespace Objectivehtml\Media\Support;
 
 use Illuminate\Support\Collection;
-use Illuminate\Database\Eloquent\Model;
-use Objectivehtml\MediaManager\MediaService;
-use Objectivehtml\MediaManager\Contracts\Plugin;
-use Objectivehtml\MediaManager\Contracts\Pluginable as PluginableInterface;
+use Objectivehtml\Media\Model;
+use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Contracts\Plugin;
+use Objectivehtml\Media\Contracts\Pluginable as PluginableInterface;
 
 trait Pluginable {
 

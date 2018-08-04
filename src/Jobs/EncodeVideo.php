@@ -1,8 +1,8 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Jobs;
+namespace Objectivehtml\Media\Jobs;
 
-use Objectivehtml\MediaManager\Model;
+use Objectivehtml\Media\Model;
 
 class EncodeVideo extends CopyAndEncodeVideo
 {

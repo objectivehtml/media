@@ -1,14 +1,15 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Plugins;
+namespace Objectivehtml\Media\Plugins;
 
-use Illuminate\Database\Eloquent\Model;
-use Objectivehtml\MediaManager\MediaService;
-use Objectivehtml\MediaManager\Support\Applyable;
-use Objectivehtml\MediaManager\Support\ApplyToImages;
-use Objectivehtml\MediaManager\Jobs\ExtractColorPalette;
-use Objectivehtml\MediaManager\Jobs\ResizeMaxDimensions;
-use Objectivehtml\MediaManager\Conversions\Image\Thumbnail;
+use Objectivehtml\Media\Model;
+use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Support\Applyable;
+use Objectivehtml\Media\Support\ApplyToImages;
+use Objectivehtml\Media\Jobs\PreserveOriginal;
+use Objectivehtml\Media\Jobs\ExtractColorPalette;
+use Objectivehtml\Media\Jobs\ResizeMaxDimensions;
+use Objectivehtml\Media\Conversions\Image\Thumbnail;
 
 class ImagePlugin extends Plugin {
 
@@ -20,14 +21,27 @@ class ImagePlugin extends Plugin {
             return;
         }
 
+        if($model->fileExists) {
+            $image = app(MediaService::class)->image($model->path);
+            $model->meta('width', $image->width());
+            $model->meta('height', $image->height());
+            $model->save();
+            $image->destroy();
+        }
+
+        /*
         if(($total = app(MediaService::class)->config('image.extract_colors')) && !$model->meta('colors') && $model->fileExists) {
             ExtractColorPalette::dispatch($model, $total);
         }
+        */
     }
 
     public function jobs(Model $model): array
     {
+        $resource = $model->resource();
+
         return [
+            new PreserveOriginal($model, $resource ? $resource->preserveOriginal() : config('preserve_original')),
             new ResizeMaxDimensions(
                 $model,
                 app(MediaService::class)->config('image.max_width'),

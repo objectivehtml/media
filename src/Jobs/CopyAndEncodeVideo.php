@@ -1,18 +1,18 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Jobs;
+namespace Objectivehtml\Media\Jobs;
 
 use Illuminate\Bus\Queueable;
 use FFMpeg\Format\Video\X264;
 use FFMpeg\Coordinate\Dimension;
-use Objectivehtml\MediaManager\Model;
+use Objectivehtml\Media\Model;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Database\QueryException;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Objectivehtml\MediaManager\MediaService;
-use Objectivehtml\MediaManager\Events\VideoEncodingProgress;
+use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Events\VideoEncodingProgress;
 
 class CopyAndEncodeVideo implements ShouldQueue
 {
@@ -63,34 +63,46 @@ class CopyAndEncodeVideo implements ShouldQueue
      */
     public function handle()
     {
-        $video = app(MediaService::class)->ffmpeg()->open($this->model->path);
-
-        if($this->width && $this->height) {
-            $video->filters()
-                ->resize(new Dimension($this->width, $this->height))
-                ->synchronize();
-        }
-
         $model = $this->model();
 
-        $format = (new X264('aac'))
-            ->setAdditionalParameters(['-strict', '-2'])
-            ->setKiloBitrate($this->videoKbps)
-            ->setAudioChannels($this->audioChannels)
-            ->setAudioKiloBitrate($this->audioKbps)
-            ->on('progress', function($video, $format, $percentage) use ($model) {
-                $model->meta('encoded_percent', $percentage);
-                $model->save();
+        if(!$model->meta->get('encoding')) {
+            $model->meta('encoding', true);
+            $model->save();
 
-                event(new VideoEncodingProgress($model));
-            });
+            $path = $this->model->path;
 
-        $video->save($format, $output = $model->path);
+            if($original = $this->model->children()->original()->first()) {
+                $path = $this->model->children()->original()->first()->path;
+            }
 
-        $model->meta('encoded', true);
-        $model->save();
+            $video = app(MediaService::class)->ffmpeg()->open($path);
 
-        return $this->model;
+            if($this->width && $this->height) {
+                $video->filters()
+                    ->resize(new Dimension($this->width, $this->height))
+                    ->synchronize();
+            }
+
+            $format = (new X264('aac'))
+                ->setAdditionalParameters(['-strict', '-2'])
+                ->setKiloBitrate($this->videoKbps)
+                ->setAudioChannels($this->audioChannels)
+                ->setAudioKiloBitrate($this->audioKbps)
+                ->on('progress', function($video, $format, $percentage) use ($model) {
+                    $model->meta('encoded_percent', $percentage);
+                    $model->save();
+
+                    event(new VideoEncodingProgress($model));
+                });
+
+            $video->save($format, $output = $model->path);
+
+            $model->meta('encoding', null);
+            $model->meta('encoded', true);
+            $model->size = app(MediaService::class)->storage()->disk($model->disk)->size($model->relative_path);
+
+            $model->save();
+        }
     }
 
     protected function model(): Model

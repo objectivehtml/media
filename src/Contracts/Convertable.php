@@ -1,10 +1,10 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Contracts;
+namespace Objectivehtml\Media\Contracts;
 
-use Objectivehtml\MediaManager\Model;
-use Objectivehtml\MediaManager\Conversions\Conversions;
-use Objectivehtml\MediaManager\Contracts\Convertable as ConvertableInterface;
+use Objectivehtml\Media\Model;
+use Objectivehtml\Media\Conversions\Conversions;
+use Objectivehtml\Media\Contracts\Convertable as ConvertableInterface;
 
 interface Convertable {
 

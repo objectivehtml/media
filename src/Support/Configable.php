@@ -1,6 +1,6 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Support;
+namespace Objectivehtml\Media\Support;
 
 trait Configable {
 

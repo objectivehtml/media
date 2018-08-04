@@ -2,40 +2,45 @@
 
 namespace Objectivehtml\Media\Resources;
 
+use Mimey\MimeTypes;
 use Illuminate\Http\Testing\File as FakeFile;
 use Symfony\Component\HttpFoundation\File\File;
 use Objectivehtml\Media\Exceptions\InvalidResourceException;
 
-class FileResource extends StreamableResource {
+class RemoteResource extends StreamableResource {
 
-    public function __construct(File $resource)
+    public function __construct($resource)
     {
         $this->resource = $resource;
     }
 
     public function mime(): string
     {
-        return $this->resource->getMimeType();
+        return (new \finfo(FILEINFO_MIME_TYPE))->buffer($this->resource);
     }
 
     public function extension(): ?string
     {
-        return $this->resource->guessExtension();
+        return (new MimeTypes)->getExtension($this->mime());
     }
 
     public function size(): int
     {
+        dd($this);
+
         return $this->resource->getSize();
     }
 
     public function filename(): string
     {
+        dd('13');
+
         return $this->resource->getFilename();
     }
 
-    public function originalFilename(): string
+    public function originalFilename(): ?string
     {
-        return $this->resource instanceof File ? $this->resource->getFilename() : $this->resource->getClientOriginalName();
+        return null;
     }
 
     public function getResource()

@@ -1,9 +1,9 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Strategies;
+namespace Objectivehtml\Media\Strategies;
 
-use Illuminate\Database\Eloquent\Model;
-use Objectivehtml\MediaManager\Contracts\Strategy as StrategyInterface;
+use Objectivehtml\Media\Model;
+use Objectivehtml\Media\Contracts\Strategy as StrategyInterface;
 
 abstract class Strategy implements StrategyInterface
 {

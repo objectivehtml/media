@@ -1,10 +1,10 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Filters\Image;
+namespace Objectivehtml\Media\Filters\Image;
 
-use Objectivehtml\MediaManager\Model;
+use Objectivehtml\Media\Model;
 use Intervention\Image\ImageManagerStatic as Image;
-use Objectivehtml\MediaManager\Contracts\Filter as FilterInterface;
+use Objectivehtml\Media\Contracts\Filter as FilterInterface;
 
 class Sharpen extends ImageFilter implements FilterInterface {
 
@@ -20,6 +20,7 @@ class Sharpen extends ImageFilter implements FilterInterface {
         $image = Image::make($model->path);
         $image->sharpen($this->amount);
         $image->save($model->path);
+        $image->destroy();
     }
 
 }

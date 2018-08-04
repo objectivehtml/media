@@ -1,8 +1,8 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Support;
+namespace Objectivehtml\Media\Support;
 
-use Objectivehtml\MediaManager\MediaService;
+use Objectivehtml\Media\MediaService;
 
 trait ApplyToVideo {
 

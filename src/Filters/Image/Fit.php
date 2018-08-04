@@ -6,28 +6,30 @@ use Objectivehtml\Media\Model;
 use Intervention\Image\ImageManagerStatic as Image;
 use Objectivehtml\Media\Contracts\Filter as FilterInterface;
 
-class Crop extends ImageFilter implements FilterInterface {
+class Fit extends ImageFilter implements FilterInterface {
 
     public $width;
 
     public $height;
 
-    public $x;
+    public $upsize;
 
-    public $y;
-
-    public function __construct($width, $height, $x = null, $y = null)
+    public function __construct($width, $height, bool $upsize = true)
     {
         $this->width = $width;
         $this->height = $height;
-        $this->x = $x;
-        $this->y = $y;
+        $this->upsize = $upsize;
     }
 
     public function apply(Model $model)
     {
         $image = Image::make($model->path);
-        $image->crop($this->width, $this->height, $this->x, $this->y);
+        $image->fit($this->width, $this->height, function($constraint) {
+            if($this->upsize) {
+                $constraint->upsize();
+            }
+        });
+
         $image->save($model->path);
         $image->destroy();
     }

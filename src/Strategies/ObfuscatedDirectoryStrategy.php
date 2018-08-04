@@ -1,8 +1,8 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Strategies;
+namespace Objectivehtml\Media\Strategies;
 
-use Illuminate\Database\Eloquent\Model;
+use Objectivehtml\Media\Model;
 
 class ObfuscatedDirectoryStrategy extends DirectoryStrategy
 {

@@ -7,8 +7,8 @@ use Faker\Factory;
 use Tests\TestCase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
-use Objectivehtml\MediaManager\Model;
-use Objectivehtml\MediaManager\MediaService;
+use Objectivehtml\Media\Model;
+use Objectivehtml\Media\MediaService;
 use Intervention\Image\ImageManagerStatic as Image;
 
 class DatabaseTest extends TestCase
@@ -16,7 +16,7 @@ class DatabaseTest extends TestCase
 
     public function testCreateModel()
     {
-        $file = UploadedFile::fake()->image('test.jpg', $width = 1024, $height = 768);
+        $file = UploadedFile::fake()->image('test.jpg', $width = 10, $height = 10);
 
         try {
             $model = Model::create($data = [
@@ -37,7 +37,7 @@ class DatabaseTest extends TestCase
 
     public function testMetaCrudOnModel()
     {
-        $file = UploadedFile::fake()->image('test.jpg', $width = 1024, $height = 768);
+        $file = UploadedFile::fake()->image('test.jpg', $width = 10, $height = 10);
 
         $model = new Model([
             'disk' => 'local',
@@ -75,11 +75,9 @@ class DatabaseTest extends TestCase
 
     public function testDeleteModel()
     {
-        $file = UploadedFile::fake()->image('test.jpg', 3072, 2304);
+        $file = UploadedFile::fake()->create('test.csv');
 
-        $resource = app(MediaService::class)->resource($file);
-
-        $model = $resource->save();
+        $model = app(MediaService::class)->resource($file)->save();
 
         app(MediaService::class)->storage()->disk($model->disk)->assertExists($model->relative_path);
 
@@ -88,6 +86,8 @@ class DatabaseTest extends TestCase
         app(MediaService::class)->storage()->disk($model->disk)->delete($model->relative_path);
 
         app(MediaService::class)->storage()->disk($model->disk)->assertMissing($model->relative_path);
+
+        $this->assertCount(0, app(MediaService::class)->storage()->disk($model->disk)->files($model->directory));
     }
 
 }

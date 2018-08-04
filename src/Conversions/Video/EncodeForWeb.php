@@ -1,16 +1,16 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Conversions\Video;
+namespace Objectivehtml\Media\Conversions\Video;
 
-use Objectivehtml\MediaManager\Model;
-use Objectivehtml\MediaManager\MediaService;
-use Objectivehtml\MediaManager\Jobs\EncodeVideo;
-use Objectivehtml\MediaManager\Jobs\ExtractFrames;
+use Objectivehtml\Media\Model;
+use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Jobs\EncodeVideo;
+use Objectivehtml\Media\Jobs\ExtractFrames;
 use Intervention\Image\ImageManagerStatic as Image;
-use Objectivehtml\MediaManager\Conversions\Conversion;
-use Objectivehtml\MediaManager\Jobs\CopyAndEncodeVideo;
-use Objectivehtml\MediaManager\Contracts\StreamableResource;;
-use Objectivehtml\MediaManager\Contracts\Conversion as ConversionInterface;
+use Objectivehtml\Media\Conversions\Conversion;
+use Objectivehtml\Media\Jobs\CopyAndEncodeVideo;
+use Objectivehtml\Media\Contracts\StreamableResource;;
+use Objectivehtml\Media\Contracts\Conversion as ConversionInterface;
 
 class EncodeForWeb extends Conversion implements ConversionInterface {
 

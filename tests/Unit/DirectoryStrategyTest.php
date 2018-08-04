@@ -4,8 +4,8 @@ namespace Tests\Unit;
 
 use Media;
 use Tests\TestCase;
-use Objectivehtml\MediaManager\Strategies\DirectoryStrategy;
-use Objectivehtml\MediaManager\Strategies\ObfuscatedDirectoryStrategy;
+use Objectivehtml\Media\Strategies\DirectoryStrategy;
+use Objectivehtml\Media\Strategies\ObfuscatedDirectoryStrategy;
 
 class DirectoryStrategyTest extends TestCase
 {

@@ -1,9 +1,9 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Conversions;
+namespace Objectivehtml\Media\Conversions;
 
 use Illuminate\Support\Collection;
-use Objectivehtml\MediaManager\Contracts\Conversion as ConversionInterface;
+use Objectivehtml\Media\Contracts\Conversion as ConversionInterface;
 
 class Conversions extends Collection {
 
@@ -21,11 +21,6 @@ class Conversions extends Collection {
                 }
             }
         }
-    }
-
-    public function apply($to)
-    {
-        dd('apply filter to', $to);
     }
 
 }

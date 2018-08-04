@@ -1,22 +1,22 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Resources;
+namespace Objectivehtml\Media\Resources;
 
 use InvalidArgumentException;
-use Objectivehtml\MediaManager\Model;
-use Objectivehtml\MediaManager\MediaService;
+use Objectivehtml\Media\Model;
+use Objectivehtml\Media\MediaService;
 use Illuminate\Contracts\Filesystem\Factory;
 use Symfony\Component\HttpFoundation\File\File;
-use Objectivehtml\MediaManager\Filters\Filters;
-use Objectivehtml\MediaManager\Support\Metable;
-use Objectivehtml\MediaManager\Support\Taggable;
-use Objectivehtml\MediaManager\Support\Filterable;
-use Objectivehtml\MediaManager\Support\Convertable;
-use Objectivehtml\MediaManager\Contracts\Convertable as ConvertableInterface;
-use Objectivehtml\MediaManager\Contracts\Filterable as FilterableInterface;
-use Objectivehtml\MediaManager\Contracts\Metable as MetableInterface;
-use Objectivehtml\MediaManager\Contracts\Taggable as TaggableInterface;
-use Objectivehtml\MediaManager\Contracts\StreamableResource as StreamableResourceInterface;
+use Objectivehtml\Media\Filters\Filters;
+use Objectivehtml\Media\Support\Metable;
+use Objectivehtml\Media\Support\Taggable;
+use Objectivehtml\Media\Support\Filterable;
+use Objectivehtml\Media\Support\Convertable;
+use Objectivehtml\Media\Contracts\Convertable as ConvertableInterface;
+use Objectivehtml\Media\Contracts\Filterable as FilterableInterface;
+use Objectivehtml\Media\Contracts\Metable as MetableInterface;
+use Objectivehtml\Media\Contracts\Taggable as TaggableInterface;
+use Objectivehtml\Media\Contracts\StreamableResource as StreamableResourceInterface;
 
 abstract class StreamableResource implements StreamableResourceInterface, ConvertableInterface, FilterableInterface, MetableInterface, TaggableInterface {
 

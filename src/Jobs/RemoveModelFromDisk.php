@@ -1,14 +1,14 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Jobs;
+namespace Objectivehtml\Media\Jobs;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Database\Eloquent\Model;
+use Objectivehtml\Media\Model;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Objectivehtml\MediaManager\MediaService;
+use Objectivehtml\Media\MediaService;
 
 class RemoveModelFromDisk implements ShouldQueue
 {
@@ -39,5 +39,11 @@ class RemoveModelFromDisk implements ShouldQueue
             ->storage()
             ->disk($this->model->disk)
             ->delete($this->model->relative_path);
+
+        if(app(MediaService::class)->config('delete_directories')) {
+            if(!count(app(MediaService::class)->storage()->disk($this->model->disk)->files($this->model->directory))) {
+                app(MediaService::class)->storage()->disk($this->model->disk)->deleteDirectory($this->model->directory);
+            }
+        }
     }
 }

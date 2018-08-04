@@ -1,9 +1,9 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Support;
+namespace Objectivehtml\Media\Support;
 
 use Illuminate\Support\Collection;
-use Objectivehtml\MediaManager\Contracts\Taggable as TaggableInterface;
+use Objectivehtml\Media\Contracts\Taggable as TaggableInterface;
 
 trait Taggable {
 

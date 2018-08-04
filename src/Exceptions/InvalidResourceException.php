@@ -1,6 +1,6 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Exceptions;
+namespace Objectivehtml\Media\Exceptions;
 
 use Exception;
 

@@ -1,14 +1,14 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Jobs;
+namespace Objectivehtml\Media\Jobs;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Database\Eloquent\Model;
+use Objectivehtml\Media\Model;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Objectivehtml\MediaManager\MediaService;
+use Objectivehtml\Media\MediaService;
 use Intervention\Image\ImageManagerStatic as Image;
 
 class ResizeMaxDimensions implements ShouldQueue
@@ -38,27 +38,14 @@ class ResizeMaxDimensions implements ShouldQueue
      */
     public function handle()
     {
-        $image = Image::make(
-            $path = app(MediaService::class)->storage()->disk($this->model->disk)->path($this->model->relative_path)
+        $image = Image::make($this->model->path);
+
+        $image->fit(
+            app(MediaService::class)->config('image.max_width'),
+            app(MediaService::class)->config('image.max_height')
         );
 
-        $maxWidth = app(MediaService::class)->config('image.max_width');
-        $maxHeight = app(MediaService::class)->config('image.max_height');
-
-        if($image->width() > $maxWidth) {
-            $image->resize($maxWidth, null, function ($constraint) {
-                $constraint->aspectRatio();
-            });
-        }
-        else if($image->height() > $maxHeight) {
-            $image->resize(null, $maxHeight, function ($constraint) {
-                $constraint->aspectRatio();
-            });
-        }
-
-        app(MediaService::class)
-            ->storage()
-            ->disk($this->model->disk)
-            ->put($this->model->relative_path, $image->encode());
+        $image->save($this->model->path);
+        $image->destroy();
     }
 }

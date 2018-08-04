@@ -1,8 +1,8 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Contracts;
+namespace Objectivehtml\Media\Contracts;
 
-use Objectivehtml\MediaManager\Model;
+use Objectivehtml\Media\Model;
 
 interface Applyable {
 

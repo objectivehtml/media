@@ -1,12 +1,12 @@
 <?php
 
-namespace Objectivehtml\MediaManager\Support;
+namespace Objectivehtml\Media\Support;
 
 use Illuminate\Support\Collection;
-use Objectivehtml\MediaManager\Filters\Filters;
-use Objectivehtml\MediaManager\Contracts\Filter as FilterInterface;
-use Objectivehtml\MediaManager\Contracts\Filterable as FilterableInterface;
-use Objectivehtml\MediaManager\Contracts\StreamableResource as StreamableResourceInterface;
+use Objectivehtml\Media\Filters\Filters;
+use Objectivehtml\Media\Contracts\Filter as FilterInterface;
+use Objectivehtml\Media\Contracts\Filterable as FilterableInterface;
+use Objectivehtml\Media\Contracts\StreamableResource as StreamableResourceInterface;
 
 trait Filterable {
 
