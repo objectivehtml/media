@@ -6,6 +6,7 @@ use Illuminate\Bus\Queueable;
 use League\ColorExtractor\Color;
 use League\ColorExtractor\Palette;
 use Objectivehtml\Media\Model;
+use Objectivehtml\Media\MediaService;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use League\ColorExtractor\ColorExtractor;
@@ -38,15 +39,15 @@ class ExtractColorPalette implements ShouldQueue
      */
     public function handle()
     {
+        $image = app(MediaService::class)->image($this->model->path);
+        $image->fit(
+            min($this->model->width, app(MediaService::class)->config('image.colors.max_width') ?: 600),
+            min($this->model->height, app(MediaService::class)->config('image.colors.max_height') ?: 600)
+        );
+
         // Create a Palette instance from the model url
-        $palette = Palette::fromFilename($this->model->path);
+        $palette = Palette::fromGd(imagecreatefromstring($image->stream()->getContents()));
 
-        if(count($colors = $palette->getMostUsedColors($this->total))) {
-            $this->model->meta('colors', Color::fromIntToHex($color));
-            $this->model->save();
-        }
-
-        /*
         // an extractor is built from a palette
         $extractor = new ColorExtractor($palette);
 
@@ -58,6 +59,5 @@ class ExtractColorPalette implements ShouldQueue
             $this->model->meta('colors', $colors);
             $this->model->save();
         }
-        */
     }
 }

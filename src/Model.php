@@ -173,6 +173,16 @@ class Model extends BaseModel
     }
 
     /**
+     * Get height of an image or video file.
+     *
+     * @param $value
+     */
+    public function getHeightAttribute()
+    {
+        return $this->meta->get('height');
+    }
+
+    /**
      * Get the meta attribute.
      *
      * @param $value
@@ -180,26 +190,6 @@ class Model extends BaseModel
     public function getMetaAttribute($value)
     {
         return $this->castAttribute('meta', $value) ?: collect();
-    }
-
-    /**
-     * Get the tags attribute.
-     *
-     * @param $value
-     */
-    public function getTagsAttribute($value)
-    {
-        return $this->castAttribute('tags', $value) ?: collect();
-    }
-
-    /**
-     * Get the relative path for the associated file.
-     *
-     * @param $value
-     */
-    public function getRelativePathAttribute()
-    {
-        return $this->filename ? ($this->directory ? $this->directory . '/' : null) . $this->filename : null;
     }
 
     /**
@@ -213,17 +203,34 @@ class Model extends BaseModel
     }
 
     /**
-     * Get the path for the associated file.
+     * Get the relative path for the associated file.
      *
      * @param $value
      */
-
-    /*
-    public function getSizeAttribute()
+    public function getRelativePathAttribute()
     {
-        return $this->attributes['size'] ?: app(MediaService::class)->storage()->disk($this->disk)->size($this->relative_path);
+        return $this->filename ? ($this->directory ? $this->directory . '/' : null) . $this->filename : null;
     }
-    */
+
+    /**
+     * Get the tags attribute.
+     *
+     * @param $value
+     */
+    public function getTagsAttribute($value)
+    {
+        return $this->castAttribute('tags', $value) ?: collect();
+    }
+
+    /**
+     * Get width of an image or video file.
+     *
+     * @param $value
+     */
+    public function getWidthAttribute()
+    {
+        return $this->meta->get('width');
+    }
 
     /**
      * Get the path for the associated file.

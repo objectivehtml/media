@@ -29,11 +29,9 @@ class ImagePlugin extends Plugin {
             $image->destroy();
         }
 
-        /*
-        if(($total = app(MediaService::class)->config('image.extract_colors')) && !$model->meta('colors') && $model->fileExists) {
+        if(($total = app(MediaService::class)->config('image.colors.total')) && !$model->meta('colors') && $model->fileExists) {
             ExtractColorPalette::dispatch($model, $total);
         }
-        */
     }
 
     public function jobs(Model $model): array

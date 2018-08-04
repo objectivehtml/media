@@ -28,7 +28,7 @@ class CopyAndEncodeVideo implements ShouldQueue
 
     protected $extension = 'mp4';
 
-    protected $mime = 'image/mp4';
+    protected $mime = 'video/mp4';
 
     protected $height = null;
 

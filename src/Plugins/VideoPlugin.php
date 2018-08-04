@@ -16,8 +16,12 @@ class VideoPlugin extends Plugin {
 
     public function saving(Model $model)
     {
-        if(!$this->doesApplyToModel($model)) {
-            return;
+        if($this->doesApplyToModel($model) && $model->fileExists) {
+            $model->meta('width', $width = app(MediaService::class)->width($model->path));
+            $model->meta('height', $height = app(MediaService::class)->height($model->path));
+            $model->meta('duration', app(MediaService::class)->duration($model->path));
+            $model->meta('aspect_ratio', app(MediaService::class)->aspectRatio($width, $height));
+            $model->meta('bit_rate', app(MediaService::class)->bitRate($model->path));
         }
     }
 
@@ -26,15 +30,6 @@ class VideoPlugin extends Plugin {
         if($this->doesApplyToModel($model)) {
             if($model->isParent()) {
                 app(MediaService::class)->extractFrame($model);
-            }
-
-            if($model->fileExists) {
-                $model->meta('width', $width = app(MediaService::class)->width($model->path));
-                $model->meta('height', $height = app(MediaService::class)->height($model->path));
-                $model->meta('duration', app(MediaService::class)->duration($model->path));
-                $model->meta('aspect_ratio', app(MediaService::class)->aspectRatio($width, $height));
-                $model->meta('bit_rate', app(MediaService::class)->bitRate($model->path));
-                $model->save();
             }
         }
     }

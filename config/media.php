@@ -82,15 +82,46 @@ return [
     ],
 
     /**
+     * The RESTful endpoint settings
+     */
+    'rest' => [
+        // The request input key
+        'key' => 'file',
+
+        // The endpoint resource slug
+        'endpoint' => 'media',
+
+        // The resource api controller class
+        'controller' => 'Objectivehtml\\Media\\Http\\Controllers\\MediaController',
+
+        'rules' => [
+
+            // The validation rules for "storing" models
+            'store' => [
+                'file' => 'required|file'
+            ],
+
+            // The validation rules for "updating" models
+            'update' => [
+                //
+            ]
+
+        ]
+    ],
+
+    /**
      * Image plugin settings.
      */
 
     'image' => [
 
+        // The maximum width for all images
         'max_width' => env('IMAGES_MAX_WIDTH', 2048),
 
+        // The maximum height for all images
         'max_height' => env('IMAGES_MAX_HEIGHT', 1536),
 
+        // The conversions that should be applied to all images.
         'conversions' => [
             [Thumbnail::class, [env('IMAGES_THUMB_WIDTH', 100), env('IMAGES_THUMB_HEIGHT', 100)]]
         ],
@@ -107,8 +138,19 @@ return [
             'jpg', 'jpeg', 'png', 'gif', 'tif', 'bmp', 'ico', 'psd', 'webp'
         ],
 
-        // Extract the X most representative colors
-        'extract_colors' => 1
+        'colors' => [
+
+            // Extract the X most representative colors
+            'total' => 3,
+
+            // Max max width of the source image used to calculate the color.
+            // Larger images require more time and memory to calculate the color.
+            'max_width' => 600,
+
+            // Max height width of the source image used to calculate the color.
+            'max_height' => 600,
+
+        ]
 
     ],
 
