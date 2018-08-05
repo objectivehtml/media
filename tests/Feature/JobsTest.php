@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use PDOException;
-use Faker\Factory;
 use Tests\TestCase;
 use Illuminate\Http\UploadedFile;
 use Objectivehtml\Media\Model;
@@ -60,10 +59,7 @@ class JobsTest extends TestCase
 
         app(MediaService::class)->storage()->disk($model->disk)->put($model->relative_path, $resource->getResource());
 
-        $maxWidth = app(MediaService::class)->config('image.max_width');
-        $maxHeight = app(MediaService::class)->config('image.max_height');
-
-        dispatch(new ResizeMaxDimensions($model, $maxWidth, $maxHeight));
+        dispatch(new ResizeMaxDimensions($model, $maxWidth = 50, $maxHeight = 50));
 
         $image = Image::make(app(MediaService::class)->storage()->disk($model->disk)->path($model->relative_path));
 
@@ -105,7 +101,10 @@ class JobsTest extends TestCase
 
         PreserveOriginal::dispatch($model);
 
+        $model = $model::find($model->id);
+
         $this->assertThat($model->children->first()->context, $this->equalTo('original'));
+
         $this->assertNotEquals($model->children->first()->relative_path, $model->relative_path);
 
         app(MediaService::class)->storage()->disk($model->disk)->assertExists($model->relative_path);
@@ -119,10 +118,6 @@ class JobsTest extends TestCase
         $model = app(MediaService::class)
             ->resource($file)
             ->save();
-
-        $image = Image::make($model->path);
-
-        $this->assertCount(app(MediaService::class)->conversions($model)->count() + 1, $model->children);
 
         $image = Image::make($model->children->last()->path);
 
@@ -143,6 +138,8 @@ class JobsTest extends TestCase
                 [Crop::class, [100, 100]]
             ])
             ->save();
+
+        $model = $model::find($model->id);
 
         $image = Image::make($model->path);
 

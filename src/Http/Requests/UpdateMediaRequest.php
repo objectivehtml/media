@@ -2,8 +2,10 @@
 
 namespace Objectivehtml\Media\Http\Requests;
 
+use Objectivehtml\Media\Model;
 use Objectivehtml\Media\MediaService;
 use Illuminate\Foundation\Http\FormRequest;
+
 
 class UpdateMediaRequest extends FormRequest
 {
@@ -12,9 +14,9 @@ class UpdateMediaRequest extends FormRequest
      *
      * @return bool
      */
-    public function authorize()
+    public function authorize(Model $model)
     {
-        return auth()->user();
+        return auth()->user() && auth()->user()->can('update', $model);
     }
 
     /**

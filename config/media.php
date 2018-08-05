@@ -9,9 +9,14 @@ use Objectivehtml\Media\Conversions\Audio\Waveform;
 use Objectivehtml\Media\Conversions\Image\Thumbnail;
 use Objectivehtml\Media\Strategies\FilenameStrategy;
 use Objectivehtml\Media\Strategies\DirectoryStrategy;
+use Objectivehtml\Media\Conversions\PreserveOriginal;
 use Objectivehtml\Media\Conversions\Video\EncodeForWeb;
+use Objectivehtml\Media\Conversions\Image\ResizeMaxDimensions;
+use Objectivehtml\Media\Strategies\ModelMatchingStrategy;
 use Objectivehtml\Media\Http\Controllers\MediaController;
 use Objectivehtml\Media\Strategies\ObfuscatedDirectoryStrategy;
+
+use Objectivehtml\Media\Filters\Image\Greyscale;
 
 return [
 
@@ -35,6 +40,13 @@ return [
     'temp' => [
         'disk' => config('MEDIA_TEMP_DISK', 'public')
     ],
+
+    /**
+     * Should prevent duplicate media uploads by default. If this is true,
+     * resources will only be saved onces, and anytime the upload methods
+     * are called, the existing model will return.
+     */
+    'prevent_duplicates' => true,
 
     /**
      * Should delete the empty directories when a model and its assets are
@@ -76,20 +88,35 @@ return [
 
         // The filename generation strategy.
         'filename' => FilenameStrategy::class,
+
+        // The model matching strategy.
+        'matching' => ModelMatchingStrategy::class,
     ],
 
     /**
      * The RESTful endpoint settings
      */
+
     'rest' => [
 
         // The request input key
         'key' => 'file',
 
+        // The resource api endpoint
+        'endpoint' => 'api/media',
+
         // The resource api controller class
         'controller' => MediaController::class,
 
         'policy' => MediaPolicy::class,
+
+        'middleware' => [
+            /*
+            'auth:api' => [
+                'except' => ['index', 'show']
+            ]
+            */
+        ],
 
         'rules' => [
 
@@ -112,19 +139,20 @@ return [
 
     'image' => [
 
-        // Supports GD or Imagic
-        'driver' => 'imagick',
-
-        // The maximum width for all images
-        'max_width' => env('IMAGES_MAX_WIDTH', 2048),
-
-        // The maximum height for all images
-        'max_height' => env('IMAGES_MAX_HEIGHT', 1536),
+        // The conversions that should be applied to all images.
+        'filters' => [
+            //
+        ],
 
         // The conversions that should be applied to all images.
         'conversions' => [
+            [PreserveOriginal::class],
+            [ResizeMaxDimensions::class, [env('IMAGES_MAX_WIDTH', 2048), env('IMAGES_MAX_HEIGHT', 1536)]],
             [Thumbnail::class, [env('IMAGES_THUMB_WIDTH', 100), env('IMAGES_THUMB_HEIGHT', 100)]]
         ],
+
+        // Supports GD or Imagic
+        'driver' => 'imagick',
 
         'mimes' => [
             'image/bmp',
@@ -150,21 +178,18 @@ return [
             // Max height width of the source image used to calculate the color.
             'max_height' => 600,
 
-        ],
-
-        /**
-         * Should preserve the original image files (by default).
-         */
-        'preserve' => true,
+        ]
 
     ],
 
     /**
      * Audio plugin settings.
      */
+
     'audio' => [
 
         'conversions' => [
+            [PreserveOriginal::class],
             [Waveform::class]
         ],
 
@@ -183,21 +208,18 @@ return [
 
         'extensions' => [
             'mid', 'mp3', 'm4a', 'wav', 'pcm', 'aiff', 'aac', 'wma'
-        ],
-
-        /**
-         * Should preserve the original audio files (by default).
-         */
-        'preserve' => true,
+        ]
 
     ],
 
     /**
      * Video plugin settings.
      */
+
     'video' => [
 
         'conversions' => [
+            [PreserveOriginal::class],
             [EncodeForWeb::class]
         ],
 
@@ -228,12 +250,7 @@ return [
             'width' => 1280,
             'height' => 720,
             'videoKbps' => 1500
-        ]],
-
-        /**
-         * Should preserve the original video files (by default).
-         */
-        'preserve' => true,
+        ]]
 
     ]
 

@@ -2,7 +2,6 @@
 
 namespace Objectivehtml\Media\Http\Requests;
 
-
 use Objectivehtml\Media\Model;
 use Objectivehtml\Media\MediaService;
 use Illuminate\Foundation\Http\FormRequest;
@@ -16,7 +15,7 @@ class StoreMediaRequest extends FormRequest
      */
     public function authorize()
     {
-        return auth()->user()->can('create', Model::class);
+        return auth()->user() && auth()->user()->can('create', Model::class);
     }
 
     /**

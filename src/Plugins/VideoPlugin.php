@@ -7,7 +7,6 @@ use Objectivehtml\Media\Model;
 use Objectivehtml\Media\MediaService;
 use Objectivehtml\Media\Support\Applyable;
 use Objectivehtml\Media\Support\ApplyToVideo;
-use Objectivehtml\Media\Jobs\PreserveOriginal;
 use FFMpeg\Exception\ExecutableNotFoundException;
 
 class VideoPlugin extends Plugin {
@@ -34,16 +33,14 @@ class VideoPlugin extends Plugin {
         }
     }
 
-    public function jobs(Model $model): array
+    public function filters(Model $model): array
     {
-        return [
-            new PreserveOriginal($model, $model->resource() ? $model->resource()->preserveOriginal() : app(MediaService::class)->config('video.preserve'))
-        ];
+        return array_map(ConfigClassStrategy::make(), app(MediaService::class)->config('video.filters') ?: []);
     }
 
     public function conversions(Model $model): array
     {
-        return app(MediaService::class)->config('video.conversions') ?: [];
+        return array_map(ConfigClassStrategy::make(), app(MediaService::class)->config('video.conversions') ?: []);
     }
 
     public function doesMeetRequirements(): bool

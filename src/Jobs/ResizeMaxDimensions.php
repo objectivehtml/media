@@ -17,6 +17,10 @@ class ResizeMaxDimensions implements ShouldQueue
 
     protected $model;
 
+    protected $width;
+
+    protected $height;
+
     /**
      * Create a new job instance.
      *
@@ -41,8 +45,8 @@ class ResizeMaxDimensions implements ShouldQueue
         $image = Image::make($this->model->path);
 
         $image->fit(
-            app(MediaService::class)->config('image.max_width'),
-            app(MediaService::class)->config('image.max_height')
+            $this->width ?: app(MediaService::class)->config('image.max_width'),
+            $this->height ?: app(MediaService::class)->config('image.max_height')
         );
 
         $image->save($this->model->path);

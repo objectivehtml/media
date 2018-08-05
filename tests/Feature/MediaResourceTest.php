@@ -17,6 +17,25 @@ use Objectivehtml\Media\Conversions\Audio\Waveform;
 class MediaResourceTest extends TestCase
 {
 
+    public function testResourceOptions()
+    {
+        $file = UploadedFile::fake()->image('test.jpg', 10, 10);
+
+        $resource = app(MediaService::class)->resource($file);
+
+        $this->assertTrue($resource->preserveOriginal());
+
+        $resource->preserveOriginal(false);
+
+        $this->assertFalse($resource->preserveOriginal());
+
+        $this->assertNull($resource->thisKeyDoesNotExist());
+
+        $resource->thisKeyDoesNotExist('test');
+
+        $this->assertThat($resource->thisKeyDoesNotExist(), $this->equalTo('test'));
+    }
+    
     public function testAddingFiltersToResourceFromFile()
     {
         $file = UploadedFile::fake()->image('test.jpg', 10, 10);
@@ -144,6 +163,26 @@ class MediaResourceTest extends TestCase
         $this->assertTrue($model->fileExists);
     }
 
+    public function testPreventDuplicates()
+    {
+        $file1 = UploadedFile::fake()->image('test.jpg', 10, 10);
+
+        $model = app(MediaService::class)->resource($file1)->save();
+
+        $this->assertThat($model->id, $this->equalTo(1));
+
+        $model2 = app(MediaService::class)->resource($file1)->model(null, true);
+
+        $this->assertThat($model->id, $this->equalTo(1));
+
+        $file2 = UploadedFile::fake()->image('test.jpg', 10, 10);
+
+        $model = app(MediaService::class)->resource($file2)->save();
+
+        $this->assertFalse($model->id === 1);
+    }
+
+    /*
     public function testVideoResourceFromFile()
     {
         $file = new File(__dir__ . '/../src/video.mp4');
@@ -156,8 +195,11 @@ class MediaResourceTest extends TestCase
                 'filename' => 'test.mp4'
             ]);
 
+        dd($model->children);
+
         $this->assertTrue($model->fileExists);
         $this->assertCount(5, $model->children);
     }
+    */
 
 }

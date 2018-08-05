@@ -41,16 +41,6 @@ abstract class Plugin implements PluginInterface {
     }
 
     /**
-     * Return the generators that should be triggered for each new media model.
-     *
-     * @return array
-     */
-    public function generators(Model $model): array
-    {
-        return [];
-    }
-
-    /**
      * Determine if the plugin's required PHP requirements are met.
      *
      * @return bool

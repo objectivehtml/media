@@ -9,12 +9,12 @@ use FFMpeg\Format\VideoInterface;
 use FFMpeg\Coordinate\TimeCode;
 use Intervention\Image\Image;
 use Objectivehtml\Media\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Contracts\Filesystem\Factory;
 use Symfony\Component\HttpFoundation\File\File;
 use FFMpeg\FFProbe\DataMapping\StreamCollection;
 use Intervention\Image\ImageManagerStatic as Img;
 use Objectivehtml\Media\Support\Configable;
-use Objectivehtml\Media\Support\Pluginable;
 use Objectivehtml\Media\Resources\FileResource;
 use Objectivehtml\Media\Resources\ImageResource;
 use Objectivehtml\Media\Resources\RemoteResource;
@@ -24,7 +24,7 @@ use Objectivehtml\Media\Contracts\Configable as ConfigableInterface;
 
 class MediaService implements ConfigableInterface {
 
-    use Configable, Pluginable;
+    use Configable;
 
     protected $filesystem;
 
@@ -32,10 +32,16 @@ class MediaService implements ConfigableInterface {
 
     protected $ffprobe;
 
+    protected $plugins;
+
     public function __construct(Factory $filesystem, array $config)
     {
         $this->filesystem = $filesystem;
         $this->mergeConfig($config);
+        $this->plugins = collect($this->config('plugins'))
+            ->map(function($class) {
+                return new $class();
+            });
     }
 
     /**
@@ -53,6 +59,15 @@ class MediaService implements ConfigableInterface {
         $gcd = $gcd($width, $height);
 
         return $width/$gcd . ':' . $height/$gcd;
+    }
+
+    public function attachTo(Model $model, $attachTo)
+    {
+        collect(!is_array($attachTo) ? [$attachTo] : $attachTo)->each(function($attachTo) use ($model) {
+            if(!$attachTo->media()->get()->contains($model)) {
+                $attachTo->media()->attach($model);
+            }
+        });
     }
 
     /**
@@ -84,9 +99,9 @@ class MediaService implements ConfigableInterface {
         return $model;
     }
 
-    public function create(array $attributes = []): Model
+    public function create(array $attributes = [], StreamableResource $resource = null): Model
     {
-        return $this->config('model')::create($attributes);
+        return $this->save($attributes, $resource);
     }
 
     /**
@@ -103,7 +118,7 @@ class MediaService implements ConfigableInterface {
     public function directory(Model $model, $strategy = null): string
     {
         if(!$strategy) {
-            $strategy = $this->directoryStrategy();
+            $strategy = $this->directoryStrategy($model);
         }
 
         return rtrim($strategy($model), '/');
@@ -228,9 +243,27 @@ class MediaService implements ConfigableInterface {
         return Img::make($image);
     }
 
-    public function model(array $attributes = [], StreamableResource $resource = null): Model
+    public function matching(Model $model, $strategy = null, $debug = false): ?Model
     {
-        return $this->config('model')::make(array_merge([
+        if(!$strategy) {
+            $strategy = $this->matchingStrategy($model);
+        }
+
+        if($matching = $strategy($model)) {
+            return $matching->parent ?: $matching;
+        }
+
+        return null;
+    }
+
+    public function matchingStrategy(): StrategyInterface
+    {
+        return $this->config('strategies.matching')::make();
+    }
+
+    public function model(array $attributes = [], StreamableResource $resource = null, $debug = false): Model
+    {
+        $model = $this->config('model')::make(array_merge(array_filter([
             'disk' => $this->config('temp.disk'),
             'context' => $resource ? $resource->context() : null,
             'directory' => $resource ? $resource->directory() : null,
@@ -242,7 +275,13 @@ class MediaService implements ConfigableInterface {
             'conversions' => $resource ? $resource->conversions() : null,
             'meta' => $resource ? $resource->meta() : null,
             'tags' => $resource ? $resource->tags() : null
-        ], $attributes));
+        ]), $attributes));
+
+        if($resource) {
+            $model->resource($resource);
+        }
+
+        return $this->matching($model) ?: $model;
     }
 
     public function path(...$parts): ?string
@@ -256,15 +295,16 @@ class MediaService implements ConfigableInterface {
      * @param  Model $model
      * @return Model
      */
-    public function preserveOriginal(Model $model): Model
+    public function preserveOriginal(Model $model)
     {
         if($model->children()->context('original')->count()) {
             throw new Exceptions\CannotPreserveOriginalException('Original already exists.');
         }
 
-        $original = app(MediaService::class)->model([
+        $original = app(MediaService::class)->config('model')::make([
             'context' => 'original',
             'disk' => $model->disk,
+            'filename' => $model->filename,
             'directory' => $model->directory,
             'orig_filename' => $model->orig_filename,
             'extension' => $model->extension,
@@ -273,12 +313,17 @@ class MediaService implements ConfigableInterface {
             'meta' => $model->meta
         ]);
 
-        if(app(MediaService::class)->storage()->disk($model->disk)->copy($model->relative_path, $original->relative_path)) {
-            $original->parent()->associate($model);
-            $original->save();
-        }
+        $model->filename = app(MediaService::class)->filename($model);
 
-        return $original;
+        app(MediaService::class)
+            ->storage()
+            ->disk($model->disk)
+            ->copy($original->relative_path, $model->relative_path);
+
+        $model->save();
+
+        $original->parent()->associate($model);
+        $original->save();
     }
 
     public function relativePath(Model $model): string
@@ -301,20 +346,10 @@ class MediaService implements ConfigableInterface {
         throw new Exceptions\InvalidResourceException;
     }
 
-    public function save(StreamableResource $resource, array $attributes = []): Model
+    public function save(array $attributes = [], StreamableResource $resource = null): Model
     {
         $model = $this->model($attributes, $resource);
-        $model->resource($resource);
         $model->save();
-
-        // 1. Create model for original file if set to preserveOriginal.
-        // 2. Take parent model and apply global filters, like max size.
-        // 3. Apply model specific Filters
-        // 4. Save generated image file, strip exif, and optimize image.
-        // 5. Check for applicable conversions and convert the file
-        // 6. Check for applicable image generators and extract the images. Extracted images re-run this routine.
-        // 7. Once filters have been applied, conversions created, generated ran, then file can be moved to final destination (from temp directory).
-        // 8. After being moved to final disk destination, save model as `ready`.
 
         return $model;
     }
@@ -360,6 +395,58 @@ class MediaService implements ConfigableInterface {
     public function width($path): int
     {
         return (int) $this->dimensions($path)->getWidth();
+    }
+
+
+    public function plugin(Plugin $plugin): PluginableInterface
+    {
+        $this->plugins->push($plugin);
+
+        return $this;
+    }
+
+    public function plugins(): Collection
+    {
+        return $this->plugins->filter(function($plugin) {
+            return $plugin->doesMeetRequirements();
+        });
+    }
+
+    public function pluginsThatApplyTo(Model $model)
+    {
+        return $this->plugins()->filter(function($plugin) use ($model) {
+            return $plugin->doesApply($model->mime, $model->extension);
+        });
+    }
+
+    public function jobs(Model $model)
+    {
+        return $this->pluginsThatApplyTo($model)
+            ->map(function($plugin) use ($model) {
+                return $plugin->jobs($model);
+            })
+            ->flatten(1)
+            ->filter();
+    }
+
+    public function filters(Model $model)
+    {
+        return $this->pluginsThatApplyTo($model)
+            ->map(function($plugin) use ($model) {
+                return $plugin->filters($model);
+            })
+            ->flatten(1)
+            ->concat($model->filters);
+    }
+
+    public function conversions(Model $model)
+    {
+        return $this->pluginsThatApplyTo($model)
+            ->map(function($plugin) use ($model) {
+                return $plugin->conversions($model);
+            })
+            ->flatten(1)
+            ->concat($model->conversions);
     }
 
 }

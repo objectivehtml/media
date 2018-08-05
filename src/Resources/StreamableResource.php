@@ -22,32 +22,27 @@ abstract class StreamableResource implements StreamableResourceInterface, Conver
 
     use Convertable, Filterable, Metable, Taggable;
 
-    protected $context;
-
-    protected $directory;
+    protected $options = [
+        'preserveOriginal' => true
+    ];
 
     protected $directoryStrategy;
 
-    protected $disk;
-
-    protected $meta;
-
-    protected $preserveOriginal = true;
-
-    public function __call(string $key, array $args = [])
+    public function __construct($resource)
     {
-        if(!property_exists($this, $key)) {
-            throw new InvalidArgumentException('Method ' . $key . '() not exists');
-        }
+        $this->resource = $resource;
+        $this->options = collect($this->options);
+    }
 
+    public function __call($key, $args)
+    {
         if(isset($args[0])) {
-            $this->$key = $args[0];
+            $this->options->put($key, $args[0]);
 
             return $this;
         }
-        else {
-            return $this->$key;
-        }
+
+        return $this->options->get($key);
     }
 
     public function directoryStrategy($strategy = null)
@@ -88,23 +83,16 @@ abstract class StreamableResource implements StreamableResourceInterface, Conver
         return app(MediaService::class)->storage();
     }
 
-    public function model(array $attributes = []): Model
+    public function model(array $attributes = null): Model
     {
-        $model = app(MediaService::class)->model(array_merge([
-            'context' => $this->context
-        ], $attributes), $this);
-
-        $model->resource($this);
-
-        return $model;
+        return app(MediaService::class)->model(array_merge([
+            'context' => $this->context()
+        ], $attributes ?: []), $this);
     }
 
     public function save(array $attributes = []): Model
     {
-        $model = app(MediaService::class)->save($this, $attributes);
-        $model->resource($this);
-
-        return $model;
+        return app(MediaService::class)->save($attributes, $this);
     }
 
 }

@@ -14,13 +14,6 @@ class MediaObserver
         }
     }
 
-    public function creating(Model $model)
-    {
-        if($model->user && app()->auth()->user()) {
-            $model->user()->associate(app()->auth()->user());
-        }
-    }
-
     public function created(Model $model)
     {
         if(is_null($model->getAttribute('directory'))) {

@@ -1,10 +1,13 @@
 <?php
 
-
 use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Http\Controllers\MediaController;
 
 // Load some api routes...
-Route::apiResource(
-    app(MediaService::class)->config('rest.endpoint') ?: 'media',
-    app(MediaService::class)->config('rest.controller') ?: 'MediaController'
-);
+
+if(app(MediaService::class)->config('rest.endpoint')) {
+    Route::apiResource(
+        app(MediaService::class)->config('rest.endpoint'),
+        app(MediaService::class)->config('rest.controller') ?: MediaController::class
+    );
+}

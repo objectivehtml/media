@@ -4,12 +4,14 @@ namespace Objectivehtml\Media;
 
 use Objectivehtml\Media\Filters\Filters;
 use Objectivehtml\Media\Support\Metable;
+use Objectivehtml\Media\Jobs\StartQueue;
 use Objectivehtml\Media\Jobs\MarkAsReady;
+use Objectivehtml\Media\Jobs\ApplyFilter;
 use Objectivehtml\Media\Jobs\ApplyFilters;
 use Objectivehtml\Media\Jobs\GenerateImages;
+use Objectivehtml\Media\Jobs\ApplyConversion;
 use Objectivehtml\Media\Jobs\MoveModelToDisk;
 use Objectivehtml\Media\Jobs\ApplyConversions;
-use Objectivehtml\Media\Jobs\PreserveOriginal;
 use Objectivehtml\Media\Conversions\Conversions;
 use Objectivehtml\Media\Jobs\RemoveModelFromDisk;
 use Objectivehtml\Media\Jobs\StartProcessingMedia;
@@ -105,18 +107,27 @@ class Model extends BaseModel
      */
     public function __construct(array $attributes = [])
     {
-        $filename = isset($attributes['filename']) ? $attributes['filename'] : null;
-
-        $this->extension = isset($attributes['extension']) ? $attributes['extension'] : (
-            app(MediaService::class)->extension($filename ?: (
-                isset($attributes['orig_filename']) ? $attributes['orig_filename'] : null
-            ))
-        );
-
-        $this->disk = app(MediaService::class)->config('disk');
-        $this->filename = app(MediaService::class)->filename($this);
-
         parent::__construct($attributes);
+
+        if(!$this->disk) {
+            $this->disk = app(MediaService::class)->config('disk');
+        }
+
+        if(!$this->extension) {
+            $this->extension = app(MediaService::class)->extension($this->filename ?: $this->orig_filename);
+        }
+
+        if(!$this->filename) {
+            $this->filename = app(MediaService::class)->filename($this);
+        }
+    }
+
+    /**
+     * Get all of the owning mediable models.
+     */
+    public function mediable(string $class)
+    {
+        return $this->morphedByMany($class, 'mediable', 'mediables', 'id', 'model_id');
     }
 
     /**
@@ -139,7 +150,7 @@ class Model extends BaseModel
     {
         return $this->belongsTo(static::class, 'parent_id');
     }
-
+    
     /**
      * Get the children models.
      *
@@ -155,11 +166,27 @@ class Model extends BaseModel
      *
      * @return void
      */
+    public function applyConversions()
+    {
+        $conversions = app(MediaService::class)->conversions($this)->map(function($conversion) {
+            return new ApplyConversion($this, $conversion);
+        });
+
+        StartQueue::withChain($conversions)->dispatch();
+    }
+
+    /**
+     * Apply the filters to the model's file.
+     *
+     * @return void
+     */
     public function applyFilters()
     {
-        $this->filters->each(function($filter) {
-            $filter->apply($this);
+        $filters = app(MediaService::class)->filters($this)->map(function($filter) {
+            return new ApplyFilter($this, $filter);
         });
+
+        StartQueue::withChain($filters)->dispatch();
     }
 
     /**
@@ -331,6 +358,16 @@ class Model extends BaseModel
     }
 
     /**
+     * Add a query scope for the conversions attribute
+     *
+     * @param $value
+     */
+    public function scopeConversion($query, $conversion)
+    {
+        $query->whereRaw('JSON_CONTAINS(`conversions`, '.json_encode($conversion).')');
+    }
+
+    /**
      * Add a query scope for the disk attribute
      *
      * @param $value
@@ -381,16 +418,6 @@ class Model extends BaseModel
     }
 
     /**
-     * Add a query scope for the conversions attribute
-     *
-     * @param $value
-     */
-    public function scopeConversion($query, $conversion)
-    {
-        $query->whereRaw('JSON_CONTAINS(`conversions`, '.json_encode($conversion).')');
-    }
-
-    /**
      * Add a query scope for the mime attribute
      *
      * @param $value
@@ -421,16 +448,24 @@ class Model extends BaseModel
     }
 
     /**
+     * Add a query scope for the orig_filename attribute
+     *
+     * @param $value
+     */
+    public function scopeParents($query)
+    {
+        $query->whereNull('parent_id');
+    }
+
+    /**
      * Add a query scope for the size attribute
      *
      * @param $value
      */
-    /*
     public function scopeSize($query, $value)
     {
         $query->whereSize($value);
     }
-    */
 
     /**
      * Add a query scope for the title attribute
@@ -440,17 +475,6 @@ class Model extends BaseModel
     public function scopeTitle($query, $value)
     {
         $query->whereTitle($value);
-    }
-
-    /**
-     * Set the resource property.
-     *
-     * @param  StreamableResource $resource
-     * @return mixed
-     */
-    public function setResource(?StreamableResource $resource)
-    {
-        $this->resource = $resource;
     }
 
     /**
@@ -471,6 +495,17 @@ class Model extends BaseModel
     public function setMetaAttribute($value)
     {
         $this->attributes['meta'] = json_encode($value);
+    }
+
+    /**
+     * Set the resource property.
+     *
+     * @param  StreamableResource $resource
+     * @return mixed
+     */
+    public function setResource(?StreamableResource $resource)
+    {
+        $this->resource = $resource;
     }
 
     /**
@@ -541,8 +576,17 @@ class Model extends BaseModel
         }
 
         static::saving(function(Model $model) {
+            //$model->filters = app(MediaService::class)->filters($model);
+            //$model->conversions = app(MediaService::class)->conversions($model);
+
             if($model->mime) {
                 $model->tag(explode('/', $model->mime)[0]);
+            }
+        });
+
+        static::saved(function(Model $model) {
+            if($model->resource() && ($attachTo = $model->resource()->attachTo())) {
+                app(MediaService::class)->attachTo($model, $attachTo);
             }
         });
 
@@ -554,12 +598,15 @@ class Model extends BaseModel
             }
 
             if($model->isParent() && $model->fileExists) {
-                StartProcessingMedia::withChain(app(MediaService::class)->jobs($model)->concat([
-                    new ApplyConversions($model),
-                    new ApplyFilters($model),
-                    new MoveModelToDisk($model, $toDisk),
-                    new MarkAsReady($model)
-                ]))->dispatch($model);
+                StartProcessingMedia::withChain(
+                    app(MediaService::class)->jobs($model)->filter()
+                        ->concat([
+                            new ApplyConversions($model),
+                            new ApplyFilters($model),
+                            new MoveModelToDisk($model, $toDisk),
+                            new MarkAsReady($model)
+                        ])
+                )->dispatch($model);
             }
             else if($model->fileExists) {
                 StartProcessingMedia::withChain([

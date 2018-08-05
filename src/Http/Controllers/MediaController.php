@@ -6,11 +6,35 @@ use Illuminate\Http\Request;
 use Objectivehtml\Media\Model;
 use Illuminate\Support\Collection;
 use Objectivehtml\Media\MediaService;
+use Illuminate\Foundation\Bus\DispatchesJobs;
+use Illuminate\Routing\Controller as BaseController;
+use Illuminate\Foundation\Validation\ValidatesRequests;
 use Objectivehtml\Media\Http\Requests\StoreMediaRequest;
 use Objectivehtml\Media\Http\Requests\UpdateMediaRequest;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
-class MediaController extends Collection
+class MediaController extends BaseController
 {
+    use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
+
+    /**
+     * Define the controller middleware
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function __construct()
+    {
+        $middlewares = app(MediaService::class)->config('rest.middleware') ?: [];
+
+        foreach($middlewares as $key => $methods) {
+            $middleware = $this->middleware($key);
+
+            foreach($methods as $method => $args) {
+                $middleware->$method(...$args);
+            }
+        }
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -18,11 +42,21 @@ class MediaController extends Collection
      */
     public function index(Request $request)
     {
-        return response()->json(Model::where(function($q) use ($request) {
-            $q->orWhere('title', 'LIKE', '%'.($request->title ?: $request->q).'%');
-            $q->orWhere('caption', 'LIKE', '%'.($request->caption ?: $request->q).'%');
-            $q->orWhere('filename', 'LIKE', '%'.($request->filename ?: $request->q).'%');
-            $q->orWhere('context', $request->context ?: $request->q);
+        $query = Model::parents()->with('children');
+
+        return response()->json($query->where(function($q) use ($request) {
+            if($value = $request->title ?: $request->q) {
+                $q->orWhere('title', 'LIKE', '%'.$value.'%');
+            }
+            if($value = $request->caption ?: $request->q) {
+                $q->orWhere('caption', 'LIKE', '%'.$value.'%');
+            }
+            if($value = $request->filename ?: $request->q) {
+                $q->orWhere('filename', 'LIKE', '%'.$value.'%');
+            }
+            if($value = $request->context ?: $request->q) {
+                $q->orWhere('context', $value);
+            }
         })->paginate());
     }
 
@@ -36,10 +70,7 @@ class MediaController extends Collection
     {
         $file = $request->file(app(MediaService::class)->config('rest.key'));
 
-        $model = app(MediaService::class)
-            ->resource($file)
-            ->model();
-
+        $model = app(MediaService::class)->resource($file)->model();
         $model->fill($request->only(['context', 'title', 'caption', 'meta']));
         $model->save();
 
@@ -54,7 +85,7 @@ class MediaController extends Collection
      */
     public function show($id)
     {
-        return response()->json(app(MediaService::class)->config('model')::findOrFail($id));
+        return response()->json(app(MediaService::class)->config('model')::findOrFail($id)->load('children'));
     }
 
     /**
@@ -70,7 +101,7 @@ class MediaController extends Collection
         $model->fill($request->all());
         $model->save();
 
-        return response()->json($model);
+        return response()->json($model->load('children'));
     }
 
     /**
@@ -82,6 +113,7 @@ class MediaController extends Collection
     public function destroy($id)
     {
         $model = app(MediaService::class)->config('model')::findOrFail($id);
+        $model->load('children');
         $model->delete();
 
         return response()->json($model);

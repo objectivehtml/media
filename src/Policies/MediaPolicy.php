@@ -49,9 +49,9 @@ class MediaPolicy
     * @param  \App\Post  $post
     * @return bool
     */
-    public function view(Authenticatable $user, Media $model)
+    public function view(Authenticatable $user, Model $model)
     {
-        return $user->id === $model->user_id;
+        return !!$user;
     }
 
     /**
@@ -61,9 +61,9 @@ class MediaPolicy
     * @param  \App\Post  $post
     * @return bool
     */
-    public function update(Authenticatable $user, Media $model)
+    public function update(Authenticatable $user, Model $model)
     {
-        return $user->id === $model->user_id;
+        return !!$user;
     }
 
     /**
@@ -73,7 +73,7 @@ class MediaPolicy
     * @param  \App\Post  $post
     * @return bool
     */
-    public function delete(Authenticatable $user, Media $model)
+    public function delete(Authenticatable $user, Model $model)
     {
         return $user->id === $model->user_id;
     }

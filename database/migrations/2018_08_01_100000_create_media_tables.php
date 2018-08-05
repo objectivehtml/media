@@ -13,8 +13,6 @@ class CreateMediaTables extends Migration
     {
         Schema::create('media', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('user_id')->unsigned()->nullable();
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
             $table->integer('parent_id')->unsigned()->nullable();
             $table->foreign('parent_id')->references('id')->on('media')->onDelete('cascade')->onUpdate('cascade');
             $table->boolean('ready')->default(false);
@@ -27,7 +25,7 @@ class CreateMediaTables extends Migration
             $table->string('directory')->nullable();
             $table->string('mime')->nullable();
             $table->string('extension')->nullable();
-            $table->unsignedInteger('size');
+            $table->unsignedInteger('size')->default(0);
             $table->json('filters')->nullable();
             $table->json('conversions')->nullable();
             $table->json('meta')->nullable();
@@ -38,8 +36,8 @@ class CreateMediaTables extends Migration
 
         Schema::create('mediables', function($table) {
 			$table->increments('id');
-            $table->integer('media_id')->unsigned();
-            $table->foreign('media_id')->references('id')->on('media')->onDelete('cascade')->onUpdate('cascade');
+            $table->integer('model_id')->unsigned();
+            $table->foreign('model_id')->references('id')->on('media')->onDelete('cascade')->onUpdate('cascade');
             $table->integer('mediable_id')->unsigned();
             $table->string('mediable_type');
 		});

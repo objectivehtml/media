@@ -9,9 +9,9 @@ use Objectivehtml\Media\Exceptions\InvalidResourceException;
 
 class RemoteResource extends StreamableResource {
 
-    public function __construct($resource)
+    public function __construct(string $resource)
     {
-        $this->resource = $resource;
+        parent::__construct($resource);
     }
 
     public function mime(): string
@@ -26,8 +26,6 @@ class RemoteResource extends StreamableResource {
 
     public function size(): int
     {
-        dd($this);
-
         return $this->resource->getSize();
     }
 

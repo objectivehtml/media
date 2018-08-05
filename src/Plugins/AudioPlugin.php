@@ -7,30 +7,21 @@ use Objectivehtml\Media\Model;
 use Objectivehtml\Media\MediaService;
 use Objectivehtml\Media\Support\Applyable;
 use Objectivehtml\Media\Support\ApplyToAudio;
-use Objectivehtml\Media\Jobs\PreserveOriginal;
 use FFMpeg\Exception\ExecutableNotFoundException;
+use Objectivehtml\Media\Strategies\ConfigClassStrategy;
 
 class AudioPlugin extends Plugin {
 
     use Applyable, ApplyToAudio;
 
-    public function saving(Model $model)
+    public function filters(Model $model): array
     {
-        if(!$this->doesApplyToModel($model)) {
-            return;
-        }
-    }
-
-    public function jobs(Model $model): array
-    {
-        return [
-            new PreserveOriginal($model, $model->resource() ? $model->resource()->preserveOriginal() : app(MediaService::class)->config('audio.preserve'))
-        ];
+        return array_map(ConfigClassStrategy::make(), app(MediaService::class)->config('audio.filters') ?: []);
     }
 
     public function conversions(Model $model): array
     {
-        return app(MediaService::class)->config('audio.conversions') ?: [];
+        return array_map(ConfigClassStrategy::make(), app(MediaService::class)->config('audio.conversions') ?: []);
     }
 
     public function doesMeetRequirements(): bool

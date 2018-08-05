@@ -12,7 +12,7 @@ class ImageResource extends StreamableResource {
 
     public function __construct(Image $resource)
     {
-        $this->resource = $resource;
+        parent::__construct($resource);
     }
 
     public function mime(): string

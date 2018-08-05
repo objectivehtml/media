@@ -10,7 +10,7 @@ class FileResource extends StreamableResource {
 
     public function __construct(File $resource)
     {
-        $this->resource = $resource;
+        parent::__construct($resource);
     }
 
     public function mime(): string

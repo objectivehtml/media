@@ -23,7 +23,7 @@ class MediaEndpointTest extends TestCase
 
     public function testIndex()
     {
-        $response = $this->get('media');
+        $response = $this->get(Media::config('rest.endpoint'));
 
         $response->assertStatus(200);
     }
@@ -32,7 +32,7 @@ class MediaEndpointTest extends TestCase
     {
         $response = $this
             ->actingAs($this->user())
-            ->post('media', [
+            ->post(Media::config('rest.endpoint'), [
                 'file' => UploadedFile::fake()->image('test.jpg', $width = 10, $height = 10),
                 'meta' => [
                     'a' => 1,
@@ -57,7 +57,7 @@ class MediaEndpointTest extends TestCase
 
         $response = $this
             ->actingAs($this->user())
-            ->get('media/'.$model->id);
+            ->get(Media::config('rest.endpoint').'/'.$model->id);
 
         $response->assertStatus(200);
     }
@@ -70,7 +70,7 @@ class MediaEndpointTest extends TestCase
 
         $response = $this
             ->actingAs($this->user())
-            ->put('media/'.$model->id, [
+            ->put(Media::config('rest.endpoint').'/'.$model->id, [
                 'title' => 'test'
             ]);
 
@@ -87,7 +87,7 @@ class MediaEndpointTest extends TestCase
 
         $response = $this
             ->actingAs($this->user())
-            ->delete('media/'.$model->id);
+            ->delete(Media::config('rest.endpoint').'/'.$model->id);
 
         $response->assertStatus(200);
 

@@ -2,14 +2,11 @@
 
 namespace Tests\Feature;
 
-use PDOException;
-use Faker\Factory;
+use Media;
 use Tests\TestCase;
+use Objectivehtml\Media\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
-use Objectivehtml\Media\Model;
-use Objectivehtml\Media\MediaService;
-use Intervention\Image\ImageManagerStatic as Image;
 
 class DatabaseTest extends TestCase
 {
@@ -18,21 +15,16 @@ class DatabaseTest extends TestCase
     {
         $file = UploadedFile::fake()->image('test.jpg', $width = 10, $height = 10);
 
-        try {
-            $model = Model::create($data = [
-                'disk' => 'local',
-                'directory' => '',
-                'mime' => $file->getMimeType(),
-                'size' => $file->getSize(),
-                'extension' => $file->guessExtension(),
-                'orig_filename' => $file->getClientOriginalName()
-            ]);
+        $model = Model::create($data = [
+            'disk' => 'local',
+            'directory' => '',
+            'mime' => $file->getMimeType(),
+            'size' => $file->getSize(),
+            'extension' => $file->guessExtension(),
+            'orig_filename' => $file->getClientOriginalName()
+        ]);
 
-            $this->assertTrue($model->exists);
-        }
-        catch(PDOException $e) {
-            $this->fail($e->getMessage());
-        }
+        $this->assertTrue($model->exists);
     }
 
     public function testMetaCrudOnModel()
@@ -80,17 +72,17 @@ class DatabaseTest extends TestCase
     {
         $file = UploadedFile::fake()->create('test.csv');
 
-        $model = app(MediaService::class)->resource($file)->save();
+        $model = Media::resource($file)->save();
 
-        app(MediaService::class)->storage()->disk($model->disk)->assertExists($model->relative_path);
+        Media::storage()->disk($model->disk)->assertExists($model->relative_path);
 
         $model->delete();
 
-        app(MediaService::class)->storage()->disk($model->disk)->delete($model->relative_path);
+        Media::storage()->disk($model->disk)->delete($model->relative_path);
 
-        app(MediaService::class)->storage()->disk($model->disk)->assertMissing($model->relative_path);
+        Media::storage()->disk($model->disk)->assertMissing($model->relative_path);
 
-        $this->assertCount(0, app(MediaService::class)->storage()->disk($model->disk)->files($model->directory));
+        $this->assertCount(0, Media::storage()->disk($model->disk)->files($model->directory));
     }
 
 }
