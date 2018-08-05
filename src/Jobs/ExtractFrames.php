@@ -39,8 +39,13 @@ class ExtractFrames implements ShouldQueue
      */
     public function handle()
     {
-        for($x = $this->start; $x < floor($this->model->meta->get('duration')); $x += $this->interval) {
-            app(MediaService::class)->extractFrame($this->model, $x);
+        if($this->interval) {
+            for($x = $this->start; $x < floor($this->model->meta->get('duration')); $x += $this->interval) {
+                app(MediaService::class)->extractFrame($this->model, $x);
+            }
+        }
+        else {
+            app(MediaService::class)->extractFrame($this->model, $this->start);
         }
     }
 }

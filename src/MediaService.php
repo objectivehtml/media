@@ -19,6 +19,7 @@ use Objectivehtml\Media\Resources\FileResource;
 use Objectivehtml\Media\Resources\ImageResource;
 use Objectivehtml\Media\Resources\RemoteResource;
 use Objectivehtml\Media\Contracts\StreamableResource;
+use Objectivehtml\Media\Strategies\JobsConfigClassStrategy;
 use Objectivehtml\Media\Contracts\Strategy as StrategyInterface;
 use Objectivehtml\Media\Contracts\Configable as ConfigableInterface;
 
@@ -421,10 +422,13 @@ class MediaService implements ConfigableInterface {
 
     public function jobs(Model $model)
     {
-        return $this->pluginsThatApplyTo($model)
-            ->map(function($plugin) use ($model) {
+        $globalJobs = collect(array_map(JobsConfigClassStrategy::make($model), $this->config('jobs') ?: []));
+
+        return collect()
+            ->concat($globalJobs)
+            ->concat($this->pluginsThatApplyTo($model)->map(function($plugin) use ($model) {
                 return $plugin->jobs($model);
-            })
+            }))
             ->flatten(1)
             ->filter();
     }

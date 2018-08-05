@@ -150,7 +150,7 @@ class Model extends BaseModel
     {
         return $this->belongsTo(static::class, 'parent_id');
     }
-    
+
     /**
      * Get the children models.
      *
@@ -599,7 +599,7 @@ class Model extends BaseModel
 
             if($model->isParent() && $model->fileExists) {
                 StartProcessingMedia::withChain(
-                    app(MediaService::class)->jobs($model)->filter()
+                    app(MediaService::class)->jobs($model)
                         ->concat([
                             new ApplyConversions($model),
                             new ApplyFilters($model),

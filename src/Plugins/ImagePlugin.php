@@ -10,10 +10,16 @@ use Objectivehtml\Media\Support\ApplyToImages;
 use Objectivehtml\Media\Jobs\ExtractColorPalette;
 use Objectivehtml\Media\Conversions\Image\Thumbnail;
 use Objectivehtml\Media\Strategies\ConfigClassStrategy;
+use Objectivehtml\Media\Strategies\JobsConfigClassStrategy;
 
 class ImagePlugin extends Plugin {
 
     use Applyable, ApplyToImages;
+
+    public function jobs(Model $model): array
+    {
+        return array_map(JobsConfigClassStrategy::make($model), app(MediaService::class)->config('image.jobs') ?: []);;
+    }
 
     public function filters(Model $model): array
     {

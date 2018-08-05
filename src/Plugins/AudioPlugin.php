@@ -9,10 +9,16 @@ use Objectivehtml\Media\Support\Applyable;
 use Objectivehtml\Media\Support\ApplyToAudio;
 use FFMpeg\Exception\ExecutableNotFoundException;
 use Objectivehtml\Media\Strategies\ConfigClassStrategy;
+use Objectivehtml\Media\Strategies\JobsConfigClassStrategy;
 
 class AudioPlugin extends Plugin {
 
     use Applyable, ApplyToAudio;
+
+    public function jobs(Model $model): array
+    {
+        return array_map(JobsConfigClassStrategy::make($model), app(MediaService::class)->config('audio.jobs') ?: []);;
+    }
 
     public function filters(Model $model): array
     {

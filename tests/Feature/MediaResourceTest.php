@@ -35,7 +35,7 @@ class MediaResourceTest extends TestCase
 
         $this->assertThat($resource->thisKeyDoesNotExist(), $this->equalTo('test'));
     }
-    
+
     public function testAddingFiltersToResourceFromFile()
     {
         $file = UploadedFile::fake()->image('test.jpg', 10, 10);
@@ -130,22 +130,6 @@ class MediaResourceTest extends TestCase
         $this->assertTrue($model->fileExists);
     }
 
-    /*
-    public function testResourceFromUrl()
-    {
-        $model = app(MediaService::class)
-            ->resource('http://via.placeholder.com/350x150')
-            ->directory('test')
-            ->save([
-                'filename' => 'test.m4a'
-            ]);
-
-        $this->assertTrue($model->fileExists);
-        $this->assertNotNull($model = $model->children()->context('waveform')->first());
-        $this->assertTrue($model->fileExists);
-    }
-    */
-
     public function testAudioResourceFromFile()
     {
         $file = new File(__dir__ . '/../src/guitar.m4a');
@@ -182,7 +166,6 @@ class MediaResourceTest extends TestCase
         $this->assertFalse($model->id === 1);
     }
 
-    /*
     public function testVideoResourceFromFile()
     {
         $file = new File(__dir__ . '/../src/video.mp4');
@@ -190,16 +173,11 @@ class MediaResourceTest extends TestCase
         $model = app(MediaService::class)
             ->resource($file)
             ->save([
-                'directory' => 'test',
-                'size' => $file->getSize(),
                 'filename' => 'test.mp4'
             ]);
-
-        dd($model->children);
 
         $this->assertTrue($model->fileExists);
         $this->assertCount(5, $model->children);
     }
-    */
 
 }

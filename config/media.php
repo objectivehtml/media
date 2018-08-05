@@ -1,6 +1,7 @@
 <?php
 
 use Objectivehtml\Media\Model;
+use Objectivehtml\Media\Jobs\ExtractFrames;
 use Objectivehtml\Media\Plugins\AudioPlugin;
 use Objectivehtml\Media\Plugins\ImagePlugin;
 use Objectivehtml\Media\Plugins\VideoPlugin;
@@ -218,6 +219,18 @@ return [
 
     'video' => [
 
+        // Extract the first frame synchronously so it is available immediately
+        // in the model or API response.
+        'sync_extract_first_frame' => true,
+
+        // By default the starting time (in seconds) is set to 30 because the
+        // first frame is extract synchronously. If that is set to false, this
+        // option should be set to 0 if you want the first frame.
+        'extract_frames_starting' => 30,
+
+        // Extract frame every X seconds.
+        'extract_frames_every' => 30,
+
         'conversions' => [
             [PreserveOriginal::class],
             [EncodeForWeb::class]
@@ -234,9 +247,6 @@ return [
         'extensions' => [
             'mp4', 'mv4', 'mov', 'avi', 'wmv'
         ],
-
-        // Extract frame every X seconds
-        'extract_frames' => 30,
 
         'resolutions' => [[
             'width' => 256,
