@@ -18,7 +18,10 @@
         "php-ffmpeg/binary-driver": "dev-master",
         "php-ffmpeg/php-ffmpeg": "^0.11.1",
         "league/color-extractor": "0.3.*",
-        "ralouphie/mimey": "^2.0"
+        "ralouphie/mimey": "^2.0",
+        "php-http/guzzle6-adapter": "^1.1",
+        "geocoder-php/google-maps-provider": "^4.2",
+        "php-http/message": "^1.6"
     },
     "require-dev": {
         "orchestra/testbench": "~3.6",

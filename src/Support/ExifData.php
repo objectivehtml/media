@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Images;
+namespace Objectivehtml\Media\Support;
 
 class ExifData {
 
-    public $data;
+    protected $data;
 
     public function __construct(array $data)
     {
@@ -17,41 +17,36 @@ class ExifData {
             return $this->$key();
         }
 
-        return $this->key($key);
+        return $this->get($key);
     }
 
-    public function key($key)
+    public function get($key)
     {
-        $parts = explode('.', $key);
-
-        while(count($parts)) {
-            $part = array_shift($parts);
-
-            if(!isset($subject) && isset($this->data[$part])) {
-                $subject = $this->data[$part];
-            }
-            else if(isset($subject[$part])) {
-                $subject = $subject[$part];
-            }
-        }
-
-        return isset($subject) ? $subject : null;
+        return array_get($this->data, $key);
     }
 
     public function latitude()
     {
-        $coordinate = ($latitude = $this->key('GPSLatitude')) ? $this->convertDegreesToDecimates($latitude) : null;
+        $coordinate = ($latitude = $this->get('GPSLatitude')) ? $this->convertDegreesToDecimates($latitude) : null;
 
-        $ref = $this->key('GPSLatitudeRef') ? $this->key('GPSLatitudeRef') : 'N';
+        if($coordinate === null) {
+            return null;
+        }
+
+        $ref = $this->get('GPSLatitudeRef') ? $this->get('GPSLatitudeRef') : 'N';
 
         return $coordinate * ($ref == 'N' ? 1 : -1);
     }
 
     public function longitude()
     {
-        $coordinate = ($longitude = $this->key('GPSLongitude')) ? $this->convertDegreesToDecimates($longitude) : null;
+        $coordinate = ($longitude = $this->get('GPSLongitude')) ? $this->convertDegreesToDecimates($longitude) : null;
 
-        $ref = $this->key('GPSLongitudeRef') ? $this->key('GPSLongitudeRef') : 'W';
+        if($coordinate === null) {
+            return null;
+        }
+
+        $ref = $this->get('GPSLongitudeRef') ? $this->get('GPSLongitudeRef') : 'W';
 
         return $coordinate * ($ref == 'W' ? -1 : 1);
     }

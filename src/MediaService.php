@@ -39,6 +39,7 @@ class MediaService implements ConfigableInterface {
     {
         $this->filesystem = $filesystem;
         $this->mergeConfig($config);
+
         $this->plugins = collect($this->config('plugins'))
             ->map(function($class) {
                 return new $class();

@@ -5,6 +5,7 @@ namespace Objectivehtml\Media\Plugins;
 use Objectivehtml\Media\Model;
 use Objectivehtml\Media\Support\Applyable;
 use Objectivehtml\Media\Contracts\Plugin as PluginInterface;
+use Objectivehtml\Media\Contracts\Configable as ConfigableInterface;
 
 abstract class Plugin implements PluginInterface {
 

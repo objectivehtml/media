@@ -30,5 +30,6 @@
         <env name="QUEUE_DRIVER" value="sync"/>
         <env name="FFMPEG_BINARIES" value="/usr/local/Cellar/ffmpeg/4.0.2/bin/ffmpeg"/>
         <env name="FFPROBE_BINARIES" value="/usr/local/Cellar/ffmpeg/4.0.2/bin/ffprobe"/>
+        <env name="GOOGLE_MAPS_API_KEY" value="AIzaSyAhSv9zWvisiTXRPRw6K8AE0DCmrRMpQcU"/>
     </php>
 </phpunit>

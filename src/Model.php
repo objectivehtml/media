@@ -8,6 +8,7 @@ use Objectivehtml\Media\Jobs\StartQueue;
 use Objectivehtml\Media\Jobs\MarkAsReady;
 use Objectivehtml\Media\Jobs\ApplyFilter;
 use Objectivehtml\Media\Jobs\ApplyFilters;
+use Objectivehtml\Media\Support\ExifData;
 use Objectivehtml\Media\Support\QueryScopes;
 use Objectivehtml\Media\Jobs\GenerateImages;
 use Objectivehtml\Media\Jobs\ApplyConversion;
@@ -18,6 +19,7 @@ use Objectivehtml\Media\Jobs\RemoveModelFromDisk;
 use Objectivehtml\Media\Jobs\StartProcessingMedia;
 use Illuminate\Database\Eloquent\Model as BaseModel;
 use Objectivehtml\Media\Contracts\StreamableResource;
+use Intervention\Image\Exception\NotReadableException;
 
 class Model extends BaseModel
 {
@@ -123,6 +125,17 @@ class Model extends BaseModel
         if(!$this->filename) {
             $this->filename = app(MediaService::class)->filename($this);
         }
+
+        if(!$this->exif && $this->fileExists) {
+            try {
+                if($exif = app(MediaService::class)->image($this->path)->exif()) {
+                    $this->meta('exif', $exif);
+                }
+            }
+            catch(NotReadableException $e) {
+                // If the file can't be read, then it has no exif data...
+            }
+        }
     }
 
     /**
@@ -190,6 +203,20 @@ class Model extends BaseModel
         });
 
         StartQueue::withChain($filters)->dispatch();
+    }
+
+    /**
+     * Get the file_exists attribute.
+     *
+     * @param $value
+     */
+    public function getExifAttribute(): ?ExifData
+    {
+        if($exif = $this->meta->get('exif')) {
+            return new ExifData($exif);
+        }
+
+        return null;
     }
 
     /**

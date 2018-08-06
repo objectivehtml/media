@@ -1,12 +1,15 @@
 <?php
 
 use Objectivehtml\Media\Model;
+use Geocoder\Provider\Chain\Chain;
 use Objectivehtml\Media\Jobs\ExtractFrames;
 use Objectivehtml\Media\Plugins\AudioPlugin;
+use Geocoder\Provider\GoogleMaps\GoogleMaps;
 use Objectivehtml\Media\Plugins\ImagePlugin;
 use Objectivehtml\Media\Plugins\VideoPlugin;
 use Objectivehtml\Media\Policies\MediaPolicy;
 use Objectivehtml\Media\Conversions\Audio\Waveform;
+use Objectivehtml\Media\Plugins\GeocoderPlugin;
 use Objectivehtml\Media\Conversions\Image\Thumbnail;
 use Objectivehtml\Media\Strategies\FilenameStrategy;
 use Objectivehtml\Media\Strategies\DirectoryStrategy;
@@ -62,7 +65,8 @@ return [
     'plugins' => [
         AudioPlugin::class,
         ImagePlugin::class,
-        VideoPlugin::class
+        VideoPlugin::class,
+        GeocoderPlugin::class,
     ],
 
     /**
@@ -261,6 +265,60 @@ return [
             'height' => 720,
             'videoKbps' => 1500
         ]]
+
+    ],
+
+    /**
+     * The geocoder plugin to automatically geolocate the meta data in your
+     * images.
+     */
+    'geocoder' => [
+
+        'locale' => 'en',
+
+        'api_key' => env('GOOGLE_MAPS_API_KEY'),
+
+        'providers' => [
+            Chain::class => [
+                GoogleMaps::class => [
+                    env('GOOGLE_MAPS_LOCALE', 'en-US'),
+                    env('GOOGLE_MAPS_API_KEY'),
+                ],
+            ],
+        ],
+
+        'cache' => [
+
+            /*
+            |-----------------------------------------------------------------------
+            | Cache Store
+            |-----------------------------------------------------------------------
+            |
+            | Specify the cache store to use for caching. The value "null" will use
+            | the default cache store specified in /config/cache.php file.
+            |
+            | Default: null
+            |
+            */
+
+            'store' => null,
+
+            /*
+            |-----------------------------------------------------------------------
+            | Cache Duration
+            |-----------------------------------------------------------------------
+            |
+            | Specify the cache duration in minutes. The default approximates a
+            | "forever" cache, but there are certain issues with Laravel's forever
+            | caching methods that prevent us from using them in this project.
+            |
+            | Default: 9999999 (integer)
+            |
+            */
+
+            'duration' => 9999999,
+
+        ]
 
     ]
 
