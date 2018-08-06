@@ -2,6 +2,7 @@
 
 namespace Objectivehtml\Media\Resources;
 
+use Illuminate\Http\UploadedFile;
 use Illuminate\Http\Testing\File as FakeFile;
 use Symfony\Component\HttpFoundation\File\File;
 use Objectivehtml\Media\Exceptions\InvalidResourceException;
@@ -35,7 +36,7 @@ class FileResource extends StreamableResource {
 
     public function originalFilename(): string
     {
-        return $this->resource instanceof File ? $this->resource->getFilename() : $this->resource->getClientOriginalName();
+        return $this->resource instanceof UploadedFile ? $this->resource->getClientOriginalName() : $this->resource->getFilename();
     }
 
     public function getResource()

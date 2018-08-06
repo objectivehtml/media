@@ -159,7 +159,7 @@ class MediaResourceTest extends TestCase
 
         $this->assertThat($model->id, $this->equalTo(1));
 
-        $file2 = UploadedFile::fake()->image('test.jpg', 10, 10);
+        $file2 = UploadedFile::fake()->image('test2.jpg', 10, 10);
 
         $model = app(MediaService::class)->resource($file2)->save();
 

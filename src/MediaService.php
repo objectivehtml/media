@@ -278,11 +278,19 @@ class MediaService implements ConfigableInterface {
             'tags' => $resource ? $resource->tags() : null
         ]), $attributes));
 
+        if($matching = $this->matching($model)) {
+            if($resource && ($attachTo = $resource->attachTo())) {
+                app(MediaService::class)->attachTo($matching, $attachTo);
+            }
+
+            return $matching;
+        }
+
         if($resource) {
             $model->resource($resource);
         }
 
-        return $this->matching($model) ?: $model;
+        return $model;
     }
 
     public function path(...$parts): ?string
@@ -345,6 +353,16 @@ class MediaService implements ConfigableInterface {
         }
 
         throw new Exceptions\InvalidResourceException;
+    }
+
+    public function formatBytes($size) {
+        $units = array('B', 'KB', 'MB', 'GB', 'TB');
+
+        $bytes = max($size, 0);
+        $pow = min(floor(($bytes ? log($bytes) : 0) / log(1024)), count($units) - 1);
+        $bytes /= (1 << (10 * $pow));
+
+        return round($bytes, $precision = 2) . ' ' . $units[$pow];
     }
 
     public function save(array $attributes = [], StreamableResource $resource = null): Model

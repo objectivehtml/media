@@ -8,6 +8,7 @@ use Objectivehtml\Media\Jobs\StartQueue;
 use Objectivehtml\Media\Jobs\MarkAsReady;
 use Objectivehtml\Media\Jobs\ApplyFilter;
 use Objectivehtml\Media\Jobs\ApplyFilters;
+use Objectivehtml\Media\Support\QueryScopes;
 use Objectivehtml\Media\Jobs\GenerateImages;
 use Objectivehtml\Media\Jobs\ApplyConversion;
 use Objectivehtml\Media\Jobs\MoveModelToDisk;
@@ -20,6 +21,8 @@ use Objectivehtml\Media\Contracts\StreamableResource;
 
 class Model extends BaseModel
 {
+    use QueryScopes;
+
     /**
      * The resource associated to the model.
      *
@@ -127,7 +130,7 @@ class Model extends BaseModel
      */
     public function mediable(string $class)
     {
-        return $this->morphedByMany($class, 'mediable', 'mediables', 'id', 'model_id');
+        return $this->morphedByMany($class, 'mediable');
     }
 
     /**
@@ -338,143 +341,14 @@ class Model extends BaseModel
     }
 
     /**
-     * Add a query scope for the caption attribute
+     * Set the resource property.
      *
-     * @param $value
+     * @param  StreamableResource $resource
+     * @return mixed
      */
-    public function scopeCaption($query, $value)
+    public function setResource(?StreamableResource $resource)
     {
-        $query->whereCaption($value);
-    }
-
-    /**
-     * Add a query scope for the context attribute
-     *
-     * @param $value
-     */
-    public function scopeContext($query, $value)
-    {
-        $query->whereContext($value);
-    }
-
-    /**
-     * Add a query scope for the conversions attribute
-     *
-     * @param $value
-     */
-    public function scopeConversion($query, $conversion)
-    {
-        $query->whereRaw('JSON_CONTAINS(`conversions`, '.json_encode($conversion).')');
-    }
-
-    /**
-     * Add a query scope for the disk attribute
-     *
-     * @param $value
-     */
-    public function scopeDisk($query, $value)
-    {
-        $query->whereDisk($value);
-    }
-
-    /**
-     * Add a query scope for the extension attribute
-     *
-     * @param $value
-     */
-    public function scopeExtension($query, $value)
-    {
-        $query->whereExtension($value);
-    }
-
-    /**
-     * Add a query scope for the filename attribute
-     *
-     * @param $value
-     */
-    public function scopeFilename($query, $value)
-    {
-        $query->whereFilename($value);
-    }
-
-    /**
-     * Add a query scope for the filters attribute
-     *
-     * @param $value
-     */
-    public function scopeFilter($query, $filter)
-    {
-        $query->whereRaw('JSON_CONTAINS(`filters`, '.json_encode($filter).')');
-    }
-
-    /**
-     * Add a query scope for the meta attribute
-     *
-     * @param $value
-     */
-    public function scopeMeta($query, $meta)
-    {
-        $query->whereRaw('JSON_CONTAINS(`meta`, '.json_encode($meta).')');
-    }
-
-    /**
-     * Add a query scope for the mime attribute
-     *
-     * @param $value
-     */
-    public function scopeMime($query, $value)
-    {
-        $query->whereMime($value);
-    }
-
-    /**
-     * Add a query scope for the original context
-     *
-     * @param $value
-     */
-    public function scopeOriginal($query)
-    {
-        $query->context('original');
-    }
-
-    /**
-     * Add a query scope for the orig_filename attribute
-     *
-     * @param $value
-     */
-    public function scopeOrigFilename($query, $value)
-    {
-        $query->whereOrigFilename($value);
-    }
-
-    /**
-     * Add a query scope for the orig_filename attribute
-     *
-     * @param $value
-     */
-    public function scopeParents($query)
-    {
-        $query->whereNull('parent_id');
-    }
-
-    /**
-     * Add a query scope for the size attribute
-     *
-     * @param $value
-     */
-    public function scopeSize($query, $value)
-    {
-        $query->whereSize($value);
-    }
-
-    /**
-     * Add a query scope for the title attribute
-     *
-     * @param $value
-     */
-    public function scopeTitle($query, $value)
-    {
-        $query->whereTitle($value);
+        $this->resource = $resource;
     }
 
     /**
@@ -495,17 +369,6 @@ class Model extends BaseModel
     public function setMetaAttribute($value)
     {
         $this->attributes['meta'] = json_encode($value);
-    }
-
-    /**
-     * Set the resource property.
-     *
-     * @param  StreamableResource $resource
-     * @return mixed
-     */
-    public function setResource(?StreamableResource $resource)
-    {
-        $this->resource = $resource;
     }
 
     /**
