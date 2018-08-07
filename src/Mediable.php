@@ -18,7 +18,6 @@ trait Mediable {
         static::saved(function ($model) {
             if(request()->has('files') && !request()->files->count()) {
                 $model->media()->detach();
-                //$model->save();
             }
             else {
                 $model->addMediaFromRequest(request());
@@ -83,7 +82,7 @@ trait Mediable {
      */
     public function media(): MorphToMany
     {
-        return $this->morphToMany(app(MediaService::class)->config('model'), 'mediable');
+        return $this->morphToMany(app(MediaService::class)->config('model'), 'mediable', null, 'mediable_id', 'model_id');
     }
 
     /**

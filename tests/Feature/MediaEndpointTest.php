@@ -46,7 +46,7 @@ class MediaEndpointTest extends TestCase
         $model = Model::first();
 
         $this->assertTrue($model->fileExists);
-        $this->assertCount(6, $model->meta);
+        $this->assertCount(7, $model->meta);
     }
 
     public function testShow()

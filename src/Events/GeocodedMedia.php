@@ -11,20 +11,23 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
-class StartProcessingMedia
+class GeocodedMedia
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $model;
+
+    public $response;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(Model $model)
+    public function __construct(Model $model, $response)
     {
         $this->model = $model;
+        $this->response = $response;
     }
 
     /**

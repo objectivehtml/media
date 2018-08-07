@@ -15,7 +15,7 @@ class VideoEncodingProgress
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    protected $model;
+    public $model;
 
     /**
      * Create a new event instance.

@@ -69,7 +69,7 @@ class Model extends BaseModel
      * @var array
      */
     protected $hidden = [
-        'resource',
+        'parent_id', 'resource',
     ];
 
     /**
@@ -124,17 +124,6 @@ class Model extends BaseModel
 
         if(!$this->filename) {
             $this->filename = app(MediaService::class)->filename($this);
-        }
-
-        if(!$this->exif && $this->fileExists) {
-            try {
-                if($exif = app(MediaService::class)->image($this->path)->exif()) {
-                    $this->meta('exif', $exif);
-                }
-            }
-            catch(NotReadableException $e) {
-                // If the file can't be read, then it has no exif data...
-            }
         }
     }
 
@@ -477,6 +466,18 @@ class Model extends BaseModel
         static::saved(function(Model $model) {
             if($model->resource() && ($attachTo = $model->resource()->attachTo())) {
                 app(MediaService::class)->attachTo($model, $attachTo);
+            }
+
+            if(!$model->exif && $model->fileExists) {
+                try {
+                    if($exif = app(MediaService::class)->image($model->path)->exif()) {
+                        $model->meta('exif', $exif);
+                        $model->save();
+                    }
+                }
+                catch(NotReadableException $e) {
+                    // If the file can't be read, then it has no exif data...
+                }
             }
         });
 

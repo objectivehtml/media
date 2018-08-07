@@ -116,11 +116,13 @@ return [
         'policy' => MediaPolicy::class,
 
         'middleware' => [
+
             /*
             'auth:api' => [
                 'except' => ['index', 'show']
             ]
             */
+
         ],
 
         'rules' => [

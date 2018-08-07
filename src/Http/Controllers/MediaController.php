@@ -42,7 +42,7 @@ class MediaController extends BaseController
      */
     public function index(Request $request)
     {
-        $query = Model::parents()->with('children');
+        $query = app(MediaService::class)->config('model')::parents()->with('children');
 
         return response()->json($query->where(function($q) use ($request) {
             if($value = $request->title ?: $request->q) {
