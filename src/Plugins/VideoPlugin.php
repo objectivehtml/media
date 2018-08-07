@@ -40,17 +40,17 @@ class VideoPlugin extends Plugin {
 
     public function jobs(Model $model): array
     {
-        return array_map(JobsConfigClassStrategy::make($model), app(MediaService::class)->config('video.jobs') ?: []);;
+        return array_map(JobsConfigClassStrategy::make($model), app(MediaService::class)->config('video.jobs', []));
     }
 
     public function filters(Model $model): array
     {
-        return array_map(ConfigClassStrategy::make(), app(MediaService::class)->config('video.filters') ?: []);
+        return array_map(ConfigClassStrategy::make(), app(MediaService::class)->config('video.filters', []));
     }
 
     public function conversions(Model $model): array
     {
-        return array_map(ConfigClassStrategy::make(), app(MediaService::class)->config('video.conversions') ?: []);
+        return array_map(ConfigClassStrategy::make(), app(MediaService::class)->config('video.conversions', []));
     }
 
     public function doesMeetRequirements(): bool

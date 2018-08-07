@@ -5,14 +5,10 @@ namespace Objectivehtml\Media\Support;
 trait Configable {
 
     protected $config = [];
-    
-    public function config($key = null, $value = null)
+
+    public function config($key = null, $default = null)
     {
-        return $key && !$value ? array_get($this->config, $key) : (
-            !$key ? $this->getConfig() : $this->mergeConfig([
-                $key => $value
-            ])
-        );
+        return !is_null($value = array_get($this->config, $key)) ? $value : $default;
     }
 
     public function getConfig() : array
@@ -20,14 +16,16 @@ trait Configable {
         return $this->config;
     }
 
-    public function setConfig(array $config)
+    public function setConfig(array $key)
     {
-        $this->config = $config;
+        $this->config = $key;
     }
 
-    public function mergeConfig(array $config)
+    public function mergeConfig(array $config): self
     {
         $this->config = array_merge($this->config, $config);
+
+        return $this;
     }
 
 }

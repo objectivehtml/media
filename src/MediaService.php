@@ -5,18 +5,21 @@ namespace Objectivehtml\Media;
 use FFMpeg\FFMpeg;
 use FFMpeg\FFProbe;
 use FFMpeg\Media\Video;
-use FFMpeg\Format\VideoInterface;
-use FFMpeg\Coordinate\TimeCode;
+use Illuminate\Http\Request;
 use Intervention\Image\Image;
 use Objectivehtml\Media\Model;
+use FFMpeg\Coordinate\TimeCode;
+use FFMpeg\Format\VideoInterface;
 use Illuminate\Support\Collection;
+use Illuminate\Contracts\Support\Jsonable;
+use Illuminate\Contracts\Support\Arrayable;
+use Objectivehtml\Media\Support\Configable;
 use Illuminate\Contracts\Filesystem\Factory;
 use Symfony\Component\HttpFoundation\File\File;
-use FFMpeg\FFProbe\DataMapping\StreamCollection;
-use Intervention\Image\ImageManagerStatic as Img;
-use Objectivehtml\Media\Support\Configable;
 use Objectivehtml\Media\Resources\FileResource;
 use Objectivehtml\Media\Resources\ImageResource;
+use FFMpeg\FFProbe\DataMapping\StreamCollection;
+use Intervention\Image\ImageManagerStatic as Img;
 use Objectivehtml\Media\Resources\RemoteResource;
 use Objectivehtml\Media\Contracts\StreamableResource;
 use Objectivehtml\Media\Strategies\JobsConfigClassStrategy;
@@ -63,9 +66,16 @@ class MediaService implements ConfigableInterface {
         return $width/$gcd . ':' . $height/$gcd;
     }
 
-    public function attachTo(Model $model, $attachTo)
+    /**
+     * Attach an instance of Objectivehtml\Media\Model to another model.
+     *
+     * @param  Objectivehtml\Media\Model  $model
+     * @param  Illuminate\Database\Eloquent\Model $attachTo
+     * @return void
+     */
+    public function attachTo(Model $model, \Illuminate\Database\Eloquent\Model $attachTo)
     {
-        collect(!is_array($attachTo) ? [$attachTo] : $attachTo)->each(function($attachTo) use ($model) {
+        collect([$attachTo])->each(function($attachTo) use ($model) {
             if(!$attachTo->media()->get()->contains($model)) {
                 $attachTo->media()->attach($model);
             }
@@ -101,9 +111,38 @@ class MediaService implements ConfigableInterface {
         return $model;
     }
 
-    public function create(array $attributes = [], StreamableResource $resource = null): Model
+    /**
+     * Attempst to convert the given data into a Objectivehtml\Media\Model
+     * instance.
+     *
+     * @param  array  $data
+     * @return mixed
+     */
+    public function translateIntoModel($data)
     {
-        return $this->save($attributes, $resource);
+        $key = app(MediaService::class)->keyName();
+
+        if($data instanceof Model) {
+            return $data;
+        }
+        else if(is_numeric($data)) {
+            return $this->config('model', Model::class)::find($data);
+        }
+        else if($data instanceof Arrayable) {
+            $data = $data->toArray();
+        }
+        if($data instanceof Jsonable) {
+            $data = (array) $data->toJson();
+        }
+        else if(!is_array($data)) {
+            $data = (array) $data;
+        }
+
+        if(!isset($data[$key])) {
+            return null;
+        }
+
+        return app(MediaService::class)->config('model', Model::class)::find($data[$key]);
     }
 
     /**
@@ -230,6 +269,25 @@ class MediaService implements ConfigableInterface {
     }
 
     /**
+     * Get the models from the request.
+     *
+     * @param  Illuminate\Http\Request $request
+     * @return Illuminate\Support\Collection;
+     */
+    public function getModelsFromRequest(Request $request, $keys = null): Collection
+    {
+        return collect($keys ?: app(MediaService::class)->config('request'))
+            ->map(function($key) {
+                return request()->input($key);
+            })
+            ->flatten(1)
+            ->map(function($item) {
+                return $this->translateIntoModel($item);
+            })
+            ->filter();
+    }
+
+    /**
      * Get the height of a video
      *
      * @param  string $path
@@ -240,12 +298,34 @@ class MediaService implements ConfigableInterface {
         return (int) $this->dimensions($path)->getHeight();
     }
 
+    /**
+     * Create an instance of an Image object.
+     *
+     * @param  mixed $image
+     * @return Intervention\Image\Image
+     */
     public function image($image): Image
     {
         return Img::make($image);
     }
 
-    public function matching(Model $model, $strategy = null, $debug = false): ?Model
+    /**
+     * Get the name of the primary key from a given model. If no model is
+     * supplied, then the model defined in th config is used.
+     *
+     * @param  Objectivehtml\Media\Model $model
+     * @return string
+     */
+    public function keyName(Model $model = null):string
+    {
+        if(!$model) {
+            $model = $this->config('model', Model::class)::make();
+        }
+
+        return (new $model())->getKeyName();
+    }
+
+    public function matching(Model $model, $strategy = null): ?Model
     {
         if(!$strategy) {
             $strategy = $this->matchingStrategy($model);
@@ -263,7 +343,14 @@ class MediaService implements ConfigableInterface {
         return $this->config('strategies.matching')::make();
     }
 
-    public function model(array $attributes = [], StreamableResource $resource = null, $debug = false): Model
+    /**
+     * Create an instance of a Objectivehtml\Media\Model.
+     *
+     * @param  array $attributes
+     * @param  Objectivehtml\Media\Contracts\StreamableResource $resource
+     * @return Objectivehtml\Media\Model
+     */
+    public function model(array $attributes = [], StreamableResource $resource = null): Model
     {
         $model = $this->config('model')::make(array_merge(array_filter([
             'disk' => $this->config('temp.disk'),
@@ -302,8 +389,8 @@ class MediaService implements ConfigableInterface {
     /**
      * Copy the file and preserve it as the original.
      *
-     * @param  Model $model
-     * @return Model
+     * @param  Objectivehtml\Media\Model $model
+     * @return Objectivehtml\Media\Model
      */
     public function preserveOriginal(Model $model)
     {
@@ -366,6 +453,12 @@ class MediaService implements ConfigableInterface {
         return round($bytes, $precision = 2) . ' ' . $units[$pow];
     }
 
+    /**
+     * Create and save an instance of Objectivehtml\Media\Model.
+     * @param  array  $attributes
+     * @param  Objectivehtml\Media\Contracts\StreamableResource $resource
+     * @return Objectivehtml\Media\Model
+     */
     public function save(array $attributes = [], StreamableResource $resource = null): Model
     {
         $model = $this->model($attributes, $resource);
@@ -441,7 +534,7 @@ class MediaService implements ConfigableInterface {
 
     public function jobs(Model $model)
     {
-        $globalJobs = collect(array_map(JobsConfigClassStrategy::make($model), $this->config('jobs') ?: []));
+        $globalJobs = collect(array_map(JobsConfigClassStrategy::make($model), $this->config('jobs', [])));
 
         return collect()
             ->concat($globalJobs)

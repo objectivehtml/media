@@ -23,12 +23,12 @@ class Geocoder {
 
     public function store(): string
     {
-        return app(MediaService::class)->config('geocoder.cache.store') ?: config('cache.default');
+        return app(MediaService::class)->config('geocoder.cache.store', config('cache.default'));
     }
 
     public function duration(): int
     {
-        return app(MediaService::class)->config('geocoder.cache.duration') ?: 0;
+        return app(MediaService::class)->config('geocoder.cache.duration', 0);
     }
 
     public function providers(): array

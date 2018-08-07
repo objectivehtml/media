@@ -41,8 +41,8 @@ class ExtractColorPalette implements ShouldQueue
     {
         $image = app(MediaService::class)->image($this->model->path);
         $image->fit(
-            min($this->model->width, app(MediaService::class)->config('image.colors.max_width') ?: 600),
-            min($this->model->height, app(MediaService::class)->config('image.colors.max_height') ?: 600)
+            min($this->model->width, app(MediaService::class)->config('image.colors.max_width', 600)),
+            min($this->model->height, app(MediaService::class)->config('image.colors.max_height', 600))
         );
 
         // Create a Palette instance from the model url

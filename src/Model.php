@@ -295,7 +295,7 @@ class Model extends BaseModel
      */
     public function getConversionsAttribute($value)
     {
-        return new Conversions($this->castAttribute('conversions', $value) ?: []);
+        return new Conversions($this->castAttribute('conversions', $value, []));
     }
 
     /**
@@ -455,9 +455,6 @@ class Model extends BaseModel
         }
 
         static::saving(function(Model $model) {
-            //$model->filters = app(MediaService::class)->filters($model);
-            //$model->conversions = app(MediaService::class)->conversions($model);
-
             if($model->mime) {
                 $model->tag(explode('/', $model->mime)[0]);
             }

@@ -16,7 +16,7 @@ class EncodeForWeb extends Conversion implements ConversionInterface {
 
     public function apply(Model $model)
     {
-        $resolutions = array_filter(app(MediaService::class)->config('video.resolutions'), function($item) use ($model) {
+        $resolutions = array_filter(app(MediaService::class)->config('video.resolutions', []), function($item) use ($model) {
             return $item['width'] < $model->meta->get('width') && $item['height'] < $model->meta->get('height');
         });
 

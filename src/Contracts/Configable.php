@@ -4,7 +4,7 @@ namespace Objectivehtml\Media\Contracts;
 
 interface Configable {
 
-    public function config($key = null, $value = null);
+    public function config($key = null, $default = null);
 
     public function getConfig(): array;
 

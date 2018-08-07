@@ -24,7 +24,7 @@ class MediaController extends BaseController
      */
     public function __construct()
     {
-        $middlewares = app(MediaService::class)->config('rest.middleware') ?: [];
+        $middlewares = app(MediaService::class)->config('rest.middleware', []);
 
         foreach($middlewares as $key => $methods) {
             $middleware = $this->middleware($key);
@@ -42,7 +42,7 @@ class MediaController extends BaseController
      */
     public function index(Request $request)
     {
-        $query = app(MediaService::class)->config('model')::parents()->with('children');
+        $query = app(MediaService::class)->config('model', Model::class)::parents()->with('children');
 
         return response()->json($query->where(function($q) use ($request) {
             if($value = $request->title ?: $request->q) {
@@ -68,7 +68,7 @@ class MediaController extends BaseController
      */
     public function store(StoreMediaRequest $request)
     {
-        $file = $request->file(app(MediaService::class)->config('rest.key'));
+        $file = $request->file(app(MediaService::class)->config('rest.input', 'file'));
 
         $model = app(MediaService::class)->resource($file)->model();
         $model->fill($request->only(['context', 'title', 'caption', 'meta']));
@@ -85,7 +85,7 @@ class MediaController extends BaseController
      */
     public function show($id)
     {
-        return response()->json(app(MediaService::class)->config('model')::findOrFail($id)->load('children'));
+        return response()->json(app(MediaService::class)->config('model', Model::class)::findOrFail($id)->load('children'));
     }
 
     /**
@@ -97,7 +97,7 @@ class MediaController extends BaseController
      */
     public function update(UpdateMediaRequest $request, $id)
     {
-        $model = app(MediaService::class)->config('model')::findOrFail($id);
+        $model = app(MediaService::class)->config('model', Model::class)::findOrFail($id);
         $model->fill($request->all());
         $model->save();
 
@@ -112,7 +112,7 @@ class MediaController extends BaseController
      */
     public function destroy($id)
     {
-        $model = app(MediaService::class)->config('model')::findOrFail($id);
+        $model = app(MediaService::class)->config('model', Model::class)::findOrFail($id);
         $model->load('children');
         $model->delete();
 

@@ -18,17 +18,17 @@ class ImagePlugin extends Plugin {
 
     public function jobs(Model $model): array
     {
-        return array_map(JobsConfigClassStrategy::make($model), app(MediaService::class)->config('image.jobs') ?: []);;
+        return array_map(JobsConfigClassStrategy::make($model), app(MediaService::class)->config('image.jobs', []));
     }
 
     public function filters(Model $model): array
     {
-        return array_map(ConfigClassStrategy::make(), app(MediaService::class)->config('image.filters') ?: []);
+        return array_map(ConfigClassStrategy::make(), app(MediaService::class)->config('image.filters', []));
     }
 
     public function conversions(Model $model): array
     {
-        return array_map(ConfigClassStrategy::make(), app(MediaService::class)->config('image.conversions') ?: []);
+        return array_map(ConfigClassStrategy::make(), app(MediaService::class)->config('image.conversions', []));
     }
 
     public function doesMeetRequirements(): bool

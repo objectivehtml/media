@@ -16,11 +16,13 @@ trait Mediable {
     protected static function bootMediable()
     {
         static::saved(function ($model) {
-            if(request()->has('files') && !request()->files->count()) {
-                $model->media()->detach();
-            }
-            else {
-                $model->addMediaFromRequest(request());
+            if($model->shouldUseObserver()) {
+                if($model->shouldUseSync()) {
+                    $model->syncMediaFromRequest(request());
+                }
+                else {
+                    $model->addMediaFromRequest(request());
+                }
             }
         });
 
@@ -30,9 +32,31 @@ trait Mediable {
     }
 
     /**
+     * Method to override the default config value that determines if this
+     * model should use the observer.
+     *
+     * @return bool
+     */
+    public function shouldUseObserver(): bool
+    {
+        return app(MediaService::class)->config('use_observer', true);
+    }
+
+    /**
+     * Method to override the default config value that determines if this
+     * model should use the observer.
+     *
+     * @return bool
+     */
+    public function shouldUseSync(): bool
+    {
+        return app(MediaService::class)->config('use_sync', true);
+    }
+
+    /**
      * Add a media resource to this model instance.
      *
-     * @param $resource
+     * @param  $resource
      * @return Illuminate\Eloquent\Database\Model
      */
     public function addMedia($resource, Closure $callback = null): Model
@@ -47,32 +71,44 @@ trait Mediable {
     }
 
     /**
-     * Add a media resource from a Request.
+     * Add media resources from a Request.
      *
-     * @param $resource
+     * @param  Illuminate\Http\Request $resource
+     * @param  Closure $callback
+     * @param  bool $sync
      * @return Illuminate\Eloquent\Database\Model
      */
-    public function addMediaFromRequest($request, Closure $callback = null): Collection
+    public function addMediaFromRequest(Request $request, Closure $callback = null): Collection
     {
-        if($request instanceof Request) {
-            $data = $request->file();
-        }
-        else if ($request instanceof FileBag || is_iterable($request)) {
-            $data = $request;
-        }
-        else {
-            throw new InvalidResourceException;
-        }
+        $files = collect($request->file())
+            ->only(app(MediaService::class)->config('request'))
+            ->flatten(1);
 
-        $return = collect();
+        $fileModels = collect($files)->map(function($file) use ($callback) {
+            return $this->addMedia($file, $callback);
+        });
 
-        foreach($data as $files) {
-            foreach((!is_array($files) ? [$files] : $files) as $file) {
-                $return->push($this->addMedia($file, $callback));
-            }
-        }
+        $inputModels = app(MediaService::class)
+            ->getModelsFromRequest($request)
+            ->each(function($model) {
+                app(MediaService::class)->attachTo($model, $this);
+            });
 
-        return $return;
+        return $fileModels->concat($inputModels);
+    }
+
+    /**
+     * Sync media resource from a Request.
+     *
+     * @param  Illuminate\Http\Request $resource
+     * @param  Closure $callback
+     * @return Illuminate\Eloquent\Database\Model
+     */
+    public function syncMediaFromRequest(Request $request, Closure $callback = null): Collection
+    {
+        $this->media()->detach();
+
+        return $this->addMediaFromRequest($request, $callback);
     }
 
     /**
@@ -82,7 +118,7 @@ trait Mediable {
      */
     public function media(): MorphToMany
     {
-        return $this->morphToMany(app(MediaService::class)->config('model'), 'mediable', null, 'mediable_id', 'model_id');
+        return $this->morphToMany(app(MediaService::class)->config('model', Model::class), 'mediable', null, 'mediable_id', 'model_id');
     }
 
     /**
@@ -144,7 +180,8 @@ trait Mediable {
                                     $relationName = null, $inverse = false)
     {
 
-        $query = app(MediaService::class)->config('model')::query();
+        $query = app(MediaService::class)
+            ->config('model', Model::class)::query();
 
         return new MorphOneThrough($query, $this, $name, $table,
                                    $foreignPivotKey, $relatedPivotKey, $parentKey,
@@ -154,7 +191,7 @@ trait Mediable {
     /**
      * Get a media resource for the associated file.
      *
-     * @param $resource
+     * @param  mixed $resource
      * @return Objectivehtml\Media\Contracts\StreamableResource
      */
     public function resource($resource): StreamableResourceInterface

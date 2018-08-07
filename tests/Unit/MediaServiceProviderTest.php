@@ -40,7 +40,9 @@ class MediaServiceProviderTest extends TestCase
     {
         $this->assertThat(Media::config('test'), $this->equalTo(null));
 
-        Media::config('test', 123);
+        Media::setConfig([
+            'test' => 123
+        ]);
 
         $this->assertThat(Media::config('test'), $this->equalTo(123));
     }

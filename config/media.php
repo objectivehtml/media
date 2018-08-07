@@ -2,45 +2,39 @@
 
 use Objectivehtml\Media\Model;
 use Geocoder\Provider\Chain\Chain;
-use Objectivehtml\Media\Jobs\ExtractFrames;
 use Objectivehtml\Media\Plugins\AudioPlugin;
 use Geocoder\Provider\GoogleMaps\GoogleMaps;
 use Objectivehtml\Media\Plugins\ImagePlugin;
 use Objectivehtml\Media\Plugins\VideoPlugin;
 use Objectivehtml\Media\Policies\MediaPolicy;
-use Objectivehtml\Media\Conversions\Audio\Waveform;
 use Objectivehtml\Media\Plugins\GeocoderPlugin;
+use Objectivehtml\Media\Conversions\Audio\Waveform;
 use Objectivehtml\Media\Conversions\Image\Thumbnail;
 use Objectivehtml\Media\Strategies\FilenameStrategy;
 use Objectivehtml\Media\Strategies\DirectoryStrategy;
 use Objectivehtml\Media\Conversions\PreserveOriginal;
 use Objectivehtml\Media\Conversions\Video\EncodeForWeb;
-use Objectivehtml\Media\Conversions\Image\ResizeMaxDimensions;
 use Objectivehtml\Media\Strategies\ModelMatchingStrategy;
 use Objectivehtml\Media\Http\Controllers\MediaController;
+use Objectivehtml\Media\Conversions\Image\ResizeMaxDimensions;
 use Objectivehtml\Media\Strategies\ObfuscatedDirectoryStrategy;
-
-use Objectivehtml\Media\Filters\Image\Greyscale;
 
 return [
 
     /**
      * The Media Eloquent model to use.
      */
-
     'model' => Model::class,
 
     /**
      * The default storage disk.
      */
-
     'disk' => config('MEDIA_DISK', 'public'),
 
     /**
      * Settings that apply to temp files, which are files that have been
      * uploaded but are still being processed.
      */
-
     'temp' => [
         'disk' => config('MEDIA_TEMP_DISK', 'public')
     ],
@@ -59,9 +53,35 @@ return [
     'delete_directories' => true,
 
     /**
+     * If true, the library with handle the saved and deleted observers so that
+     * media is automatically attached/synced to the models that implements the
+     * Objectivehtml\Media\Mediable trait. Setting this false will disable the
+     * default functionality and leave it up to your to implement this
+     * functionality within your app.
+     */
+    'use_observer' => true,
+
+    /**
+     * If true, the media in the request with be synced with the associated
+     * model, whereas false would always attach them and never remove then.
+     * This config is great for REST controllers that need to associate media
+     * to existing models and want to have full CRUD of the media.
+     */
+    'use_sync' => true,
+
+    /**
+     * Request input key(s) that should be use to handle the uploads when
+     * uploading files from a request using the `addMediaFromRequest()` method.
+     * If null, then all files in the request will be added regardless of the
+     * key. If an array is provided, all keys in the array will be used. And
+     * obviously if a single key is given, then only files from that key will
+     * apply.
+     */
+    'request' => ['file', 'files'],
+
+    /**
      * The installed plugins.
      */
-
     'plugins' => [
         AudioPlugin::class,
         ImagePlugin::class,
@@ -72,7 +92,6 @@ return [
     /**
      * FFMpeg settings. These are required for videos.
      */
-
     'ffmpeg' => [
         'timeout' => env('FFMPEG_TIMEOUT', 999999),
         'ffmpeg.threads' => env('FFMPEG_THREADS', 12),
@@ -83,7 +102,6 @@ return [
     /**
      * The default strategies.
      */
-
     'strategies' => [
         // The directory structure will be saved with the format: {id}/filename.jpeg
         'directory' => DirectoryStrategy::class,
@@ -101,11 +119,10 @@ return [
     /**
      * The RESTful endpoint settings
      */
-
     'rest' => [
 
-        // The request input key
-        'key' => 'file',
+        // The request input key to for file uploads in the rest controller.
+        'input' => 'file',
 
         // The resource api endpoint
         'endpoint' => 'api/media',
@@ -143,7 +160,6 @@ return [
     /**
      * Image plugin settings.
      */
-
     'image' => [
 
         // The conversions that should be applied to all images.
@@ -192,7 +208,6 @@ return [
     /**
      * Audio plugin settings.
      */
-
     'audio' => [
 
         'conversions' => [
@@ -222,7 +237,6 @@ return [
     /**
      * Video plugin settings.
      */
-
     'video' => [
 
         // Extract the first frame synchronously so it is available immediately
@@ -319,7 +333,7 @@ return [
             */
 
             'duration' => 9999999,
-
+            
         ]
 
     ]

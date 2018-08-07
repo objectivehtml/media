@@ -22,9 +22,8 @@ class MediaServiceTest extends TestCase
     {
         $this->assertThat(Media::config(), $this->equalTo(config('media')));
 
-        Media::config('test', 123);
-
-        $this->assertThat(Media::config('test'), $this->equalTo(123));
+        $this->assertThat(Media::config('test'), $this->equalTo(null));
+        $this->assertThat(Media::config('test', 123), $this->equalTo(123));
     }
 
     public function testStorage()
@@ -50,7 +49,7 @@ class MediaServiceTest extends TestCase
 
     public function testDirectoryStrategy()
     {
-        $model = Media::create([
+        $model = Media::save([
             'size' => 1000,
             'filename' => 'test.jpeg'
         ]);
@@ -60,7 +59,7 @@ class MediaServiceTest extends TestCase
 
     public function testDirectory()
     {
-        $model = Media::create([
+        $model = Media::save([
             'size' => 1000,
             'filename' => 'test.jpeg'
         ]);
@@ -70,7 +69,7 @@ class MediaServiceTest extends TestCase
 
     public function testRelativePath()
     {
-        $model = Media::create([
+        $model = Media::save([
             'size' => 1000,
             'filename' => 'test.jpeg'
         ]);
@@ -80,14 +79,14 @@ class MediaServiceTest extends TestCase
 
     public function testGenerateFilename()
     {
-        $model = Media::create([
+        $model = Media::save([
             'size' => 1000,
             'filename' => 'test'
         ]);
 
         $this->assertThat(strlen(Media::filename($model)), $this->equalTo(32));
 
-        $model = Media::create([
+        $model = Media::save([
             'size' => 1000,
             'filename' => 'test.jpeg'
         ]);
