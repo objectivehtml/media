@@ -177,7 +177,7 @@ class Model extends BaseModel
             return new ApplyConversion($this, $conversion);
         });
 
-        StartQueue::withChain($conversions)->dispatch();
+        StartQueue::withChain($conversions->toArray())->dispatch();
     }
 
     /**
@@ -191,7 +191,7 @@ class Model extends BaseModel
             return new ApplyFilter($this, $filter);
         });
 
-        StartQueue::withChain($filters)->dispatch();
+        StartQueue::withChain($filters->toArray())->dispatch();
     }
 
     /**
@@ -487,13 +487,15 @@ class Model extends BaseModel
 
             if($model->isParent() && $model->fileExists) {
                 StartProcessingMedia::withChain(
-                    app(MediaService::class)->jobs($model)
+                    app(MediaService::class)
+                        ->jobs($model)
                         ->concat([
                             new ApplyConversions($model),
                             new ApplyFilters($model),
                             new MoveModelToDisk($model, $toDisk),
                             new MarkAsReady($model)
                         ])
+                        ->toArray()
                 )->dispatch($model);
             }
             else if($model->fileExists) {

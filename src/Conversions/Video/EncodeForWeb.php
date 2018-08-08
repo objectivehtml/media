@@ -51,7 +51,7 @@ class EncodeForWeb extends Conversion implements ConversionInterface {
     public function applyToExtensions(): array
     {
         return [
-            'mp4', 'mv4', 'mov', 'avi', 'wmv'
+            'mp4', 'm4v', 'mov', 'avi', 'wmv'
         ];
     }
 

@@ -177,7 +177,7 @@ class MediaResourceTest extends TestCase
             ]);
 
         $this->assertTrue($model->fileExists);
-        $this->assertCount(5, $model->children);
+        $this->assertCount(6, $model->children);
     }
 
 }

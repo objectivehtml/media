@@ -32,7 +32,7 @@ class VideoPlugin extends Plugin {
 
             $model->save();
 
-            if(app(MediaService::class)->config('sync_extract_first_frame') && $model->isParent()) {
+            if(app(MediaService::class)->config('video.sync_extract_first_frame') && $model->isParent()) {
                 app(MediaService::class)->extractFrame($model);
             }
         }
@@ -51,6 +51,11 @@ class VideoPlugin extends Plugin {
     public function conversions(Model $model): array
     {
         return array_map(ConfigClassStrategy::make(), app(MediaService::class)->config('video.conversions', []));
+    }
+
+    public function doesApply($mime, $extension): bool
+    {
+        return explode('/', $mime)[0] === 'video' || parent::doesApply($mime, $extension);
     }
 
     public function doesMeetRequirements(): bool

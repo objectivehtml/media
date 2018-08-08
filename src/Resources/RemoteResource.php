@@ -31,8 +31,6 @@ class RemoteResource extends StreamableResource {
 
     public function filename(): string
     {
-        dd('13');
-
         return $this->resource->getFilename();
     }
 

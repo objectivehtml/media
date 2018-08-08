@@ -27,10 +27,15 @@ class MediaController extends BaseController
         $middlewares = app(MediaService::class)->config('rest.middleware', []);
 
         foreach($middlewares as $key => $methods) {
-            $middleware = $this->middleware($key);
+            if(is_array($methods)) {
+                $middleware = $this->middleware($key);
 
-            foreach($methods as $method => $args) {
-                $middleware->$method(...$args);
+                foreach($methods as $method => $args) {
+                    $middleware->$method(...$args);
+                }
+            }
+            else {
+                $this->middleware($methods);
             }
         }
     }
@@ -74,7 +79,7 @@ class MediaController extends BaseController
         $model->fill($request->only(['context', 'title', 'caption', 'meta']));
         $model->save();
 
-        return response()->json($model);
+        return response()->json($model->load('children'));
     }
 
     /**
