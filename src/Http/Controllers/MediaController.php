@@ -75,7 +75,10 @@ class MediaController extends BaseController
     {
         $file = $request->file(app(MediaService::class)->config('rest.input', 'file'));
 
-        $model = app(MediaService::class)->resource($file)->model();
+        $model = app(MediaService::class)
+            ->resource($file)
+            ->model();
+
         $model->fill($request->only(['context', 'title', 'caption', 'meta']));
         $model->save();
 

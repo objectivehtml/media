@@ -201,6 +201,18 @@ trait QueryScopes {
     }
 
     /**
+     * Add a query scope for the ready attribute
+     *
+     * @param Illuminate\Database\Eloquent\Builder $query
+     * @param bool $value
+     * @return void
+     */
+    public function scopeReady($query, bool $value = true)
+    {
+        $query->whereReady($value);
+    }
+
+    /**
      * Add a query scope for the size attribute
      *
      * @param Illuminate\Database\Eloquent\Builder $query

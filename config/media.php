@@ -28,14 +28,14 @@ return [
     /**
      * The default storage disk.
      */
-    'disk' => config('MEDIA_DISK', 'public'),
+    'disk' => env('MEDIA_DISK', 'public'),
 
     /**
      * Settings that apply to temp files, which are files that have been
      * uploaded but are still being processed.
      */
     'temp' => [
-        'disk' => config('MEDIA_TEMP_DISK', 'public')
+        'disk' => env('MEDIA_TEMP_DISK', 'public')
     ],
 
     /**

@@ -49,23 +49,9 @@ class Model extends BaseModel
      * @var array
      */
     protected $fillable = [
-        'ready',
-        'favorite',
-        'disk',
-        'context',
-        'title',
-        'caption',
-        'directory',
-        'filename',
-        'orig_filename',
-        'mime',
-        'extension',
-        'size',
-        'filters',
-        'conversions',
-        'meta',
-        'tags',
-        'order'
+        'ready', 'favorite', 'disk', 'context', 'title', 'caption', 'directory',
+        'filename', 'orig_filename', 'mime', 'extension', 'size','disk',
+        'filters', 'conversions', 'meta', 'tags', 'order'
     ];
 
     /**
@@ -122,7 +108,7 @@ class Model extends BaseModel
         parent::__construct($attributes);
 
         if(!$this->disk) {
-            $this->disk = app(MediaService::class)->config('disk');
+            $this->disk = app(MediaService::class)->config('temp.disk');
         }
 
         if(!$this->extension) {
@@ -174,23 +160,6 @@ class Model extends BaseModel
     }
 
     /**
-     * Set the extension attribute and automatically change the extension on
-     * the filename.
-     *
-     * @param string $value
-     * @return void
-     */
-    public function setExtensionAttribute($value)
-    {
-        if($value && $this->extension) {
-            $this->changeFilenameExtension($value);
-        }
-
-        $this->attributes['extension'] = $value;
-    }
-
-
-    /**
      * Change the filebane's extension in the database. This method does not
      * actually alter the file.
      *
@@ -202,6 +171,28 @@ class Model extends BaseModel
         if($this->filename && $extension) {
             $this->filename = str_replace('.'.$this->extension, '.'.$extension, $this->filename);
         }
+    }
+
+    /**
+     * Get the conversions as a collection.
+     *
+     * @param $value
+     */
+    public function getConversionsAttribute($value)
+    {
+        return collect($this->castAttribute('conversions', $value))
+            ->map(function($conversion) {
+                if($conversion instanceof ConversionInterface) {
+                    return $conversion;
+                }
+                else if(is_array($conversion)) {
+                    if(isset($conversion[1])) {
+                        return $conversion[0]::make(...$conversion[1]);
+                    }
+
+                    return $conversion[0]::make();
+                }
+            });
     }
 
     /**
@@ -234,6 +225,28 @@ class Model extends BaseModel
     }
 
     /**
+     * Get the filter as a collection.
+     *
+     * @param $value
+     */
+    public function getFiltersAttribute($value)
+    {
+        return collect($this->castAttribute('filters', $value))
+            ->map(function($filter) {
+                if($filter instanceof FilterInterface) {
+                    return $filter;
+                }
+                else if(is_array($filter)) {
+                    if(isset($filter[1])) {
+                        return $filter[0]::make(...$filter[1]);
+                    }
+
+                    return $filter[0]::make();
+                }
+            });
+    }
+
+    /**
      * Get height of an image or video file.
      *
      * @param $value
@@ -260,7 +273,7 @@ class Model extends BaseModel
      */
     public function getPathAttribute()
     {
-        return $this->directory ? app(MediaService::class)->storage()->disk($this->disk)->path($this->relative_path) : null;
+        return !is_null($this->directory) ? app(MediaService::class)->storage()->disk($this->disk)->path($this->relative_path) : null;
     }
 
     /**
@@ -284,6 +297,16 @@ class Model extends BaseModel
     }
 
     /**
+     * Get the path for the associated file.
+     *
+     * @param $value
+     */
+    public function getUrlAttribute()
+    {
+        return !is_null($this->directory) ? app(MediaService::class)->storage()->disk($this->disk)->url($this->relative_path) : null;
+    }
+
+    /**
      * Get width of an image or video file.
      *
      * @param $value
@@ -294,57 +317,24 @@ class Model extends BaseModel
     }
 
     /**
-     * Get the path for the associated file.
+     * Does the file exist on the model's disk.
      *
-     * @param $value
+     * @return boolean
      */
-    public function getUrlAttribute()
+    public function doesFileExist(): bool
     {
-        return $this->filename ? app(MediaService::class)->url($this->directory, $this->filename) : null;
+        return app(MediaService::class)->storage()->disk($this->disk)->exists($this->relative_path);
     }
 
     /**
-     * Get the conversions as a collection.
+     * Get the resource property.
      *
-     * @param $value
+     * @param  StreamableResource $resource
+     * @return mixed
      */
-    public function getConversionsAttribute($value)
+    public function getResource(): StreamableResource
     {
-        return collect($this->castAttribute('conversions', $value))
-            ->map(function($conversion) {
-                if($conversion instanceof ConversionInterface) {
-                    return $conversion;
-                }
-                else if(is_array($conversion)) {
-                    if(isset($conversion[1])) {
-                        return $conversion[0]::make(...$conversion[1]);
-                    }
-
-                    return $conversion[0]::make();
-                }
-            });
-    }
-
-    /**
-     * Get the filter as a collection.
-     *
-     * @param $value
-     */
-    public function getFiltersAttribute($value)
-    {
-        return collect($this->castAttribute('filters', $value))
-            ->map(function($filter) {
-                if($filter instanceof FilterInterface) {
-                    return $filter;
-                }
-                else if(is_array($filter)) {
-                    if(isset($filter[1])) {
-                        return $filter[0]::make(...$filter[1]);
-                    }
-
-                    return $filter[0]::make();
-                }
-            });
+        return $this->resource;
     }
 
     /**
@@ -358,13 +348,25 @@ class Model extends BaseModel
     }
 
     /**
-     * Does the file exist on the model's disk.
+     * Get and set meta key/value pairs
      *
-     * @return boolean
+     * @param $key
+     * @param $value
      */
-    public function doesFileExist(): bool
+    public function meta($key = null, $value = null)
     {
-        return app(MediaService::class)->storage()->disk($this->disk)->exists($this->relative_path);
+        if(is_array($key)) {
+            foreach($key as $index => $value) {
+                $this->meta($index, $value);
+            }
+        }
+        else {
+            $meta = $this->meta;
+            $meta->put($key, $value);
+            $this->setAttribute('meta', $meta->filter(function($item) {
+                return !is_null($item);
+            }));
+        }
     }
 
     /**
@@ -381,17 +383,6 @@ class Model extends BaseModel
             return $this;
         }
 
-        return $this->resource;
-    }
-
-    /**
-     * Get the resource property.
-     *
-     * @param  StreamableResource $resource
-     * @return mixed
-     */
-    public function getResource(): StreamableResource
-    {
         return $this->resource;
     }
 
@@ -417,6 +408,22 @@ class Model extends BaseModel
     }
 
     /**
+     * Set the extension attribute and automatically change the extension on
+     * the filename.
+     *
+     * @param string $value
+     * @return void
+     */
+    public function setExtensionAttribute($value)
+    {
+        if($value && $this->extension) {
+            $this->changeFilenameExtension($value);
+        }
+
+        $this->attributes['extension'] = $value;
+    }
+
+    /**
      * Ensure all directory values set do not '/' at the end
      *
      * @param $value
@@ -424,28 +431,6 @@ class Model extends BaseModel
     public function setMetaAttribute($value)
     {
         $this->attributes['meta'] = json_encode($value);
-    }
-
-    /**
-     * Get and set meta key/value pairs
-     *
-     * @param $key
-     * @param $value
-     */
-    public function meta($key = null, $value = null)
-    {
-        if(is_array($key)) {
-            foreach($key as $index => $value) {
-                $this->meta($index, $value);
-            }
-        }
-        else {
-            $meta = $this->meta;
-            $meta->put($key, $value);
-            $this->setAttribute('meta', $meta->filter(function($item) {
-                return !is_null($item);
-            }));
-        }
     }
 
     /**
@@ -480,6 +465,11 @@ class Model extends BaseModel
         return $this;
     }
 
+    /**
+     * Mark this model as a favorite in the database.
+     *
+     * @return Objectivehtml\Media\Model
+     */
     public function favorite()
     {
         $this->favorite = true;
@@ -490,6 +480,11 @@ class Model extends BaseModel
         return $this;
     }
 
+    /**
+     * Remove the favorite status from this model in the database.
+     *
+     * @return Objectivehtml\Media\Model
+     */
     public function unfavorite()
     {
         $this->favorite = false;
@@ -498,6 +493,21 @@ class Model extends BaseModel
         event(new UnfavoritedMedia($this));
 
         return $this;
+    }
+
+    public function shouldChangeDisk()
+    {
+        if($this->isParent()) {
+            return $this->ready && $this->meta->get('move_to');
+        }
+
+        return !$this->parent->temporary();
+    }
+
+    public function temporary()
+    {
+        return $this->disk === app(MediaService::class)->config('temp.disk') &&
+               $this->disk !== app(MediaService::class)->config('disk');
     }
 
     /**
@@ -515,6 +525,7 @@ class Model extends BaseModel
             static::observe($plugin);
         }
 
+        /*
         static::saving(function(Model $model) {
             if($model->mime) {
                 $model->tag(explode('/', $model->mime)[0]);
@@ -526,14 +537,9 @@ class Model extends BaseModel
                 app(MediaService::class)->attachTo($model, $attachTo);
             }
         });
+        */
 
         static::created(function(Model $model) {
-            $toDisk = app(MediaService::class)->config('disk');
-
-            if(($resource = $model->resource()) && !$model->fileExists) {
-                $toDisk = $resource->disk() ?: $toDisk;
-            }
-
             if($model->isParent() && $model->fileExists) {
                 $jobs = collect()
                     ->concat(app(MediaService::class)->jobs($model))
@@ -552,7 +558,7 @@ class Model extends BaseModel
                             })
                     )
                     ->concat([
-                        new MoveModelToDisk($model, $toDisk),
+                        // new MoveModelToDisk($model, $toDisk),
                         new MarkAsReady($model),
                         new FinishProcessingMedia($model)
                     ]);
@@ -572,7 +578,7 @@ class Model extends BaseModel
                         })
                     )
                     ->concat([
-                        new MoveModelToDisk($model, $toDisk),
+                        // new MoveModelToDisk($model, $toDisk),
                         new MarkAsReady($model),
                         new FinishProcessingMedia($model)
                     ]);

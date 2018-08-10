@@ -21,6 +21,8 @@ class EncodeVideo extends Conversion implements ConversionInterface {
 
     use ApplyToVideos;
 
+    public $tempFile;
+
     public $options = [
 
         'audioCodec' => 'aac',
@@ -83,10 +85,18 @@ class EncodeVideo extends Conversion implements ConversionInterface {
 
         $video->save($this->format($model), $model->path);
 
+        if($model->context === $this->defaultContext()) {
+            $model->ready = true;
+        }
+
         $model->meta('encoding', false);
         $model->meta('encoded', true);
-        $model->size = app(MediaService::class)->storage()->disk($model->disk)->size($model->relative_path);
+        $model->size = filesize($model->path); //app(MediaService::class)->storage()->disk($model->disk)->size($model->relative_path);
         $model->save();
+
+        if($this->tempFile) {
+            $this->tempFile->delete();
+        }
     }
 
     public function subject(Model $model)
@@ -100,7 +110,7 @@ class EncodeVideo extends Conversion implements ConversionInterface {
         }
 
         $child = $model::make([
-            'context' => $this->context ?: app(MediaService::class)->config('video.encoded_context_key', 'encoded'),
+            'context' => $this->context ?: $this->defaultContext(),
             'extension' => $this->extension,
             'directory' => $model->directory,
             'orig_filename' => $model->orig_filename,
@@ -118,11 +128,43 @@ class EncodeVideo extends Conversion implements ConversionInterface {
         return $child;
     }
 
+    public function createTempFile(Model $model): Model
+    {
+        $file = fopen($model->url, 'rb');
+
+        $temp = app(MediaService::class)
+            ->model([
+                'context' => '__temp__'.sha1($model->url),
+                'directory' => $model->directory,
+                'extension' => $model->extension,
+                'mime' => $model->mime
+            ]);
+
+        $temp->parent()->associate($model);
+        $temp->save();
+
+        app(MediaService::class)
+            ->storage()
+            ->disk($temp->disk)
+            ->put($temp->relative_path, $file, 'public');
+
+        $temp->size = filesize($temp->path);
+        $temp->save();
+
+        return $temp;
+    }
+
     public function video(Model $model): Video
     {
-        $path = $this->extractOriginalPath($model);
+        $original = $this->extractOriginalModel($model);
 
-        $video = app(MediaService::class)->ffmpeg()->open($path);
+        if(!file_exists($original->path)) {
+            $this->tempFile = $this->createTempFile($original);
+        }
+
+        $video = app(MediaService::class)
+            ->ffmpeg()
+            ->open($this->tempFile ? $this->tempFile->path : $original->path);
 
         if($this->width && $this->height) {
             $video->filters()
@@ -154,6 +196,11 @@ class EncodeVideo extends Conversion implements ConversionInterface {
         return $format;
     }
 
+    public function defaultContext()
+    {
+        return app(MediaService::class)->config('video.encoded_context_key', 'encoded');
+    }
+
     public function ensureFileExists(string $path)
     {
         if(!file_exists($path)) {
@@ -168,25 +215,20 @@ class EncodeVideo extends Conversion implements ConversionInterface {
         }
     }
 
-    public function extractOriginalPath(Model $model)
+    public function extractOriginalModel(Model $model): Model
     {
         if($original = $model->children()->original()->first()) {
-            $path = $original->path;
+            return $original;
         }
         else if($model->parent && ($original = $model->parent->children()->original()->first())) {
-            $path = $original->path;
+            return $original;
         }
         else if($model->parent) {
-            $path = ($model->parent->children()->original()->first() ?: $model->parent)->path;
+            return $model->parent->children()->original()->first() ?: $model->parent;
         }
         else {
             throw new CannotFindOriginalFileException;
         }
-
-        $this->ensureFileExists($path);
-        $this->ensurePathsDoNotMatch($model, $path);
-
-        return $path;
     }
 
 }

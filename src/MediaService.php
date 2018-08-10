@@ -95,18 +95,35 @@ class MediaService implements ConfigableInterface {
 
     public function changeDisk(Model $model, $toDisk): Model
     {
-        if($model->disk == $toDisk) {
-            throw new Exceptions\CannotMoveModelException('Cannot move model to disk "'.$model->disk.'" because it already exists on that disk.');
+        // Check to see if the model's current disk matches the disk that the
+        // model is being changed to. If a match, just ignore the request.
+        if($model->disk === $toDisk) {
+            // Use to throw an error... testing to see if silence is better.
+            // throw new Exceptions\CannotMoveModelException('Cannot move model to disk "'.$model->disk.'" because it already exists on that disk.');
+            return $model;
         }
 
-        $file = app(MediaService::class)->storage()->disk($model->disk)->get($model->relative_path);
+        $file = app(MediaService::class)
+            ->storage()
+            ->disk($model->disk)
+            ->get($model->relative_path);
 
-        if(app(MediaService::class)->storage()->disk($toDisk)->put($model->relative_path, $file)) {
-            app(MediaService::class)->storage()->disk($model->disk)->delete($model->relative_path);
+        $response = app(MediaService::class)
+            ->storage()
+            ->disk($toDisk)
+            ->put($model->relative_path, $file, 'public');
+
+        if($response) {
+            app(MediaService::class)
+                ->storage()
+                ->disk($model->disk)
+                ->delete($model->relative_path);
 
             $model->disk = $toDisk;
-            $model->save();
         }
+
+        $model->meta('move_to', null);
+        $model->save();
 
         return $model;
     }
@@ -156,7 +173,15 @@ class MediaService implements ConfigableInterface {
         return $this->videos($path)->first()->getDimensions();
     }
 
-    public function directory(Model $model, $strategy = null): string
+    /**
+     * Get the directory of a model using the specified directory strategry.
+     * If no strategy is specified, the default will be used.
+     *
+     * @param  Objectivehtml\Media\Model  $model
+     * @param  Objectivehtml\Media\Contracts\Strategy $strategy
+     * @return string
+     */
+    public function directory(Model $model, StrategyInterface $strategy = null): string
     {
         if(!$strategy) {
             $strategy = $this->directoryStrategy($model);
@@ -165,6 +190,12 @@ class MediaService implements ConfigableInterface {
         return rtrim($strategy($model), '/');
     }
 
+
+    /**
+     * Get the directory strategory.
+     *
+     * @return Objectivehtml\Media\Contracts\Strategy
+     */
     public function directoryStrategy(): StrategyInterface
     {
         return $this->config('strategies.directory')::make();
@@ -181,6 +212,12 @@ class MediaService implements ConfigableInterface {
         return (float) $this->format($path)->get('duration');
     }
 
+    /**
+     * Get the extension from a given path.
+     *
+     * @param  mixed $path
+     * @return mixed
+     */
     public function extension(?string $path): ?string
     {
         return pathinfo($path, PATHINFO_EXTENSION) ?: null;
@@ -366,6 +403,10 @@ class MediaService implements ConfigableInterface {
             'tags' => $resource ? $resource->tags() : null
         ]), $attributes));
 
+        if($resource) {
+            $model->resource($resource);
+        }
+
         if($matching = $this->matching($model)) {
             if($resource && ($attachTo = $resource->attachTo())) {
                 app(MediaService::class)->attachTo($matching, $attachTo);
@@ -374,16 +415,7 @@ class MediaService implements ConfigableInterface {
             return $matching;
         }
 
-        if($resource) {
-            $model->resource($resource);
-        }
-
         return $model;
-    }
-
-    public function path(...$parts): ?string
-    {
-        return $this->storage()->path(ltrim(implode($parts, '/'), '/'));
     }
 
     /**
@@ -481,11 +513,6 @@ class MediaService implements ConfigableInterface {
     public function streams($path): StreamCollection
     {
         return $this->ffprobe()->streams($path);
-    }
-
-    public function url(...$parts): ?string
-    {
-        return $this->storage()->url(ltrim(implode($parts, '/'), '/'));
     }
 
     /**
