@@ -3,15 +3,14 @@
 namespace Objectivehtml\Media\Jobs;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Queue\SerializesModels;
 use Objectivehtml\Media\Model;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Objectivehtml\Media\MediaService;
-//use Objectivehtml\Media\Exceptions\CannotApplyFiltersException;
+use Objectivehtml\Media\Events\StoppedProcessingMedia as StoppedProcessingMediaEvent;
 
-class ApplyFilters implements ShouldQueue
+class StoppedProcessingMedia implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -20,7 +19,6 @@ class ApplyFilters implements ShouldQueue
     /**
      * Create a new job instance.
      *
-     * @param  Model  $model
      * @return void
      */
     public function __construct(Model $model)
@@ -31,11 +29,10 @@ class ApplyFilters implements ShouldQueue
     /**
      * Execute the job.
      *
-     * @param  AudioProcessor  $processor
      * @return void
      */
     public function handle()
     {
-        $this->model->applyFilters();
+        event(new StoppedProcessingMediaEvent($this->model));
     }
 }

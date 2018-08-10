@@ -13,6 +13,7 @@ use Objectivehtml\Media\MediaService;
 use Objectivehtml\Media\Filters\Image\Crop;
 use Objectivehtml\Media\Filters\Image\Greyscale;
 use Objectivehtml\Media\Conversions\Audio\Waveform;
+use Objectivehtml\Media\Conversions\Video\Homepage;
 
 class MediaResourceTest extends TestCase
 {
@@ -172,6 +173,21 @@ class MediaResourceTest extends TestCase
 
         $model = app(MediaService::class)
             ->resource($file)
+            ->save([
+                'filename' => 'test.mp4'
+            ]);
+
+        $this->assertTrue($model->fileExists);
+        $this->assertCount(5, $model->children);
+    }
+
+    public function testHomepageVideoConversion()
+    {
+        $file = new File(__dir__ . '/../src/video.mp4');
+
+        $model = app(MediaService::class)
+            ->resource($file)
+            ->conversion(new Homepage)
             ->save([
                 'filename' => 'test.mp4'
             ]);

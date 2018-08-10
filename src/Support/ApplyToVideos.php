@@ -4,7 +4,7 @@ namespace Objectivehtml\Media\Support;
 
 use Objectivehtml\Media\MediaService;
 
-trait ApplyToVideo {
+trait ApplyToVideos {
 
     public function applyToMimes(): array
     {

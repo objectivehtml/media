@@ -10,6 +10,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Objectivehtml\Media\Contracts\Filter;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Objectivehtml\Media\Events\ApplyFilter as ApplyFilterEvent;
 //use Objectivehtml\Media\Exceptions\CannotApplyFiltersException;
 
 class ApplyFilter implements ShouldQueue
@@ -41,5 +42,7 @@ class ApplyFilter implements ShouldQueue
     public function handle()
     {
         $this->filter->apply($this->model);
+
+        event(new ApplyFilterEvent($this->model));
     }
 }

@@ -2,14 +2,14 @@
 
 namespace Objectivehtml\Media\Contracts;
 
-use Objectivehtml\Media\Filters\Filters;
+use Illuminate\Support\Collection;
 use Objectivehtml\Media\Contracts\Filterable as FilterableInterface;
 
 interface Filterable {
 
-    public function getFilters(): Filters;
+    public function getFilters(): Collection;
 
-    public function setFilters(Filters $filters): Filters;
+    public function setFilters(Collection $filters): Collection;
 
     public function filters(array $filters = null);
 

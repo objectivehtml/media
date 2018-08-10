@@ -85,4 +85,23 @@ class DatabaseTest extends TestCase
         $this->assertCount(0, Media::storage()->disk($model->disk)->files($model->directory));
     }
 
+    public function testExtensionSetAttribute()
+    {
+        $model = Model::create($data = [
+            'disk' => 'local',
+            'directory' => '',
+            'filename' => 'test.mov'
+        ]);
+
+        $this->assertThat($model->filename, $this->equalTo('test.mov'));
+
+        $model->extension = 'mp4';
+
+        $this->assertThat($model->filename, $this->equalTo('test.mp4'));
+
+        $model->filename = 'test.mov';
+
+        $this->assertThat($model->filename, $this->equalTo('test.mov'));
+
+    }
 }

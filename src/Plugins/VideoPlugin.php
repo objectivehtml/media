@@ -6,14 +6,16 @@ use FFMpeg\FFMpeg;
 use Objectivehtml\Media\Model;
 use Objectivehtml\Media\MediaService;
 use Objectivehtml\Media\Support\Applyable;
-use Objectivehtml\Media\Support\ApplyToVideo;
+use Objectivehtml\Media\Support\ApplyToVideos;
 use FFMpeg\Exception\ExecutableNotFoundException;
+use Objectivehtml\Media\Conversions\Video\EncodeVideo;
+use Objectivehtml\Media\Conversions\Video\ExtractFrames;
 use Objectivehtml\Media\Strategies\ConfigClassStrategy;
 use Objectivehtml\Media\Strategies\JobsConfigClassStrategy;
 
 class VideoPlugin extends Plugin {
 
-    use Applyable, ApplyToVideo;
+    use Applyable, ApplyToVideos;
 
     public function created(Model $model)
     {
@@ -38,19 +40,56 @@ class VideoPlugin extends Plugin {
         }
     }
 
+    public function resolutions(Model $model): array
+    {
+        $resolutions = collect(app(MediaService::class)->config('video.resolutions', []))
+            ->filter(function($resolution) use ($model) {
+                return $resolution['width'] < $model->meta->get('width') &&
+                       $resolution['height'] < $model->meta->get('height');
+            })
+            ->sort(function($a, $b) {
+                return $a['width'] * $a['height'] < $b['width'] * $b['height'];
+            });
+
+        return $resolutions->all();
+    }
+
     public function jobs(Model $model): array
     {
-        return array_map(JobsConfigClassStrategy::make($model), app(MediaService::class)->config('video.jobs', []));
+        return array_map(
+            JobsConfigClassStrategy::make($model),
+            app(MediaService::class)->config('video.jobs', [])
+        );
     }
 
     public function filters(Model $model): array
     {
-        return array_map(ConfigClassStrategy::make(), app(MediaService::class)->config('video.filters', []));
+        return array_map(
+            ConfigClassStrategy::make(),
+            app(MediaService::class)->config('video.filters', [])
+        );
     }
 
     public function conversions(Model $model): array
     {
-        return array_map(ConfigClassStrategy::make(), app(MediaService::class)->config('video.conversions', []));
+        $conversions = array_map(
+            ConfigClassStrategy::make(),
+            app(MediaService::class)->config('video.conversions', [])
+        );
+
+        return collect($conversions)
+            ->concat([
+                new ExtractFrames(),
+                new EncodeVideo([
+                    'replace' => true
+                ])
+            ])
+            ->concat(
+                array_map(function($options) {
+                    return new EncodeVideo($options);
+                }, $this->resolutions($model))
+            )
+            ->all();
     }
 
     public function doesApply($mime, $extension): bool

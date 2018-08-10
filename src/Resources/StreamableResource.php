@@ -7,7 +7,6 @@ use Objectivehtml\Media\Model;
 use Objectivehtml\Media\MediaService;
 use Illuminate\Contracts\Filesystem\Factory;
 use Symfony\Component\HttpFoundation\File\File;
-use Objectivehtml\Media\Filters\Filters;
 use Objectivehtml\Media\Support\Metable;
 use Objectivehtml\Media\Support\Taggable;
 use Objectivehtml\Media\Support\Filterable;

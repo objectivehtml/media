@@ -16,6 +16,7 @@ class CreateMediaTables extends Migration
             $table->integer('parent_id')->unsigned()->nullable();
             $table->foreign('parent_id')->references('id')->on('media')->onDelete('cascade')->onUpdate('cascade');
             $table->boolean('ready')->default(false);
+            $table->boolean('favorite')->default(false);
             $table->string('disk');
             $table->string('context')->nullable();
             $table->string('title')->nullable();

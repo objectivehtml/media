@@ -3,12 +3,12 @@
 namespace Objectivehtml\Media\Jobs;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Queue\SerializesModels;
 use Objectivehtml\Media\Model;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Events\MarkAsReady as MarkAsReadyEvent;
 use Objectivehtml\Media\Exceptions\CannotMoveModelException;
 
 class MarkAsReady implements ShouldQueue
@@ -38,5 +38,7 @@ class MarkAsReady implements ShouldQueue
     {
         $this->model->ready = true;
         $this->model->save();
+
+        event(new MarkAsReadyEvent($this->model));
     }
 }

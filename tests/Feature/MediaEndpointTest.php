@@ -52,7 +52,7 @@ class MediaEndpointTest extends TestCase
     public function testShow()
     {
         $model = app(MediaService::class)
-            ->resource(UploadedFile::fake()->image('test.jpg', 10, 10))
+            ->resource(UploadedFile::fake()->image('test.jpg', 1, 1))
             ->save();
 
         $response = $this
@@ -65,7 +65,7 @@ class MediaEndpointTest extends TestCase
     public function testUpdate()
     {
         $model = app(MediaService::class)
-            ->resource(UploadedFile::fake()->image('test.jpg', 10, 10))
+            ->resource(UploadedFile::fake()->image('test.jpg', 1, 1))
             ->save();
 
         $response = $this
@@ -82,7 +82,7 @@ class MediaEndpointTest extends TestCase
     public function testDelete()
     {
         $model = app(MediaService::class)
-            ->resource(UploadedFile::fake()->image('test.jpg', 10, 10))
+            ->resource(UploadedFile::fake()->image('test.jpg', 1, 1))
             ->save();
 
         $response = $this
@@ -92,6 +92,36 @@ class MediaEndpointTest extends TestCase
         $response->assertStatus(200);
 
         $this->assertNull($model::find($model->id));
+    }
+
+    public function testFavorite()
+    {
+        $model = app(MediaService::class)
+            ->resource(UploadedFile::fake()->image('test.jpg', 1, 1))
+            ->save();
+
+        $response = $this
+            ->actingAs($this->user())
+            ->put(Media::config('rest.endpoint').'/'.$model->id.'/favorite');
+
+        $response->assertStatus(200);
+
+        $this->assertTrue($model::find($model->id)->favorite);
+    }
+
+    public function testUnfavorite()
+    {
+        $model = app(MediaService::class)
+            ->resource(UploadedFile::fake()->image('test.jpg', 1, 1))
+            ->save();
+
+        $response = $this
+            ->actingAs($this->user())
+            ->put(Media::config('rest.endpoint').'/'.$model->id.'/unfavorite');
+
+        $response->assertStatus(200);
+
+        $this->assertFalse($model::find($model->id)->favorite);
     }
 
 

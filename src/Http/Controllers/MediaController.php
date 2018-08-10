@@ -123,4 +123,35 @@ class MediaController extends BaseController
 
         return response()->json($model);
     }
+
+    /**
+     * Favorite the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function favorite($id)
+    {
+        $model = app(MediaService::class)->config('model', Model::class)::findOrFail($id);
+        $model->favorite();
+
+        return response()->json($model->load('children'));
+    }
+
+
+    /**
+     * Unfavorite the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function unfavorite($id)
+    {
+        $model = app(MediaService::class)->config('model', Model::class)::findOrFail($id);
+        $model->unfavorite();
+
+        return response()->json($model->load('children'));
+    }
+
+
 }

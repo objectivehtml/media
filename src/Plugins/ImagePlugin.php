@@ -43,10 +43,26 @@ class ImagePlugin extends Plugin {
         }
 
         if($model->fileExists) {
-            $image = app(MediaService::class)->image($model->path);
+            $image = app(MediaService::class)->image($model->path)->orientate();
+
+            try {
+                if(!$model->exif &&
+                    $model->fileExists &&
+                    $exif = $image->exif()
+                ) {
+                    $model->meta('exif', $exif);
+                }
+            }
+            catch(NotReadableException $e) {
+                // If the file can't be read, then it has no exif data...
+            }
+
+            $image->save();
+
             $model->meta('width', $image->width());
             $model->meta('height', $image->height());
             $model->save();
+
             $image->destroy();
         }
 

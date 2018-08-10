@@ -3,7 +3,6 @@
 namespace Objectivehtml\Media\Support;
 
 use Illuminate\Support\Collection;
-use Objectivehtml\Media\Filters\Filters;
 use Objectivehtml\Media\Contracts\Filter as FilterInterface;
 use Objectivehtml\Media\Contracts\Filterable as FilterableInterface;
 use Objectivehtml\Media\Contracts\StreamableResource as StreamableResourceInterface;
@@ -12,12 +11,12 @@ trait Filterable {
 
     protected $filters;
 
-    public function getFilters(): Filters
+    public function getFilters(): Collection
     {
-        return $this->filters ?: $this->filters = new Filters;
+        return $this->filters ?: $this->filters = collect();
     }
 
-    public function setFilters(Filters $filters): Filters
+    public function setFilters(Collection $filters): Collection
     {
         return $this->filters = $filters;
     }
@@ -43,7 +42,7 @@ trait Filterable {
     public function filter($filter, ...$args): FilterableInterface
     {
         if(!$this->filters) {
-            $this->filters = new Filters;
+            $this->filters = collect();
         }
 
         if(!$filter instanceof FilterInterface) {

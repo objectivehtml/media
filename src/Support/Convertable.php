@@ -2,9 +2,8 @@
 
 namespace Objectivehtml\Media\Support;
 
-use Illuminate\Support\Collection;
 use Objectivehtml\Media\Model;
-use Objectivehtml\Media\Conversions\Conversions;
+use Illuminate\Support\Collection;
 use Objectivehtml\Media\Contracts\Conversion as ConversionInterface;
 use Objectivehtml\Media\Contracts\Convertable as ConvertableInterface;
 use Objectivehtml\Media\Contracts\StreamableResource as StreamableResourceInterface;
@@ -13,12 +12,12 @@ trait Convertable {
 
     protected $conversions;
 
-    public function getConversions(): Conversions
+    public function getConversions(): Collection
     {
-        return $this->conversions ?: $this->conversions = new Conversions;
+        return $this->conversions ?: $this->conversions = collect();
     }
 
-    public function setConversions(Conversions $conversions): Conversions
+    public function setConversions(Collection $conversions): Collection
     {
         return $this->conversions = $conversions;
     }
@@ -44,7 +43,7 @@ trait Convertable {
     public function conversion($conversion, ...$args): ConvertableInterface
     {
         if(!$this->conversions) {
-            $this->conversions = new Conversions;
+            $this->conversions = collect();
         }
 
         if(!$conversion instanceof ConversionInterface) {

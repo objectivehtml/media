@@ -3,13 +3,14 @@
 namespace Objectivehtml\Media\Jobs;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Queue\SerializesModels;
 use Objectivehtml\Media\Model;
+use Objectivehtml\Media\MediaService;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Objectivehtml\Media\MediaService;
 use Objectivehtml\Media\Exceptions\CannotMoveModelException;
+use Objectivehtml\Media\Events\MoveModelToDisk as MoveModelToDiskEvent;
 
 class MoveModelToDisk implements ShouldQueue
 {
@@ -39,11 +40,18 @@ class MoveModelToDisk implements ShouldQueue
      */
     public function handle()
     {
+        // Ignore this job if the file doesn't exist or has already been moved.
+        if(!$this->model->fileExists) {
+            return;
+        }
+
         try {
             app(MediaService::class)->changeDisk($this->model, $this->disk);
+
+            event(new MoveModelToDiskEvent($this->model));
         }
         catch(CannotMoveModelException $e) {
-            //
+            // Intentionally do nothing...
         }
     }
 }

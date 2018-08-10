@@ -13,7 +13,6 @@ use Objectivehtml\Media\Conversions\Image\Thumbnail;
 use Objectivehtml\Media\Strategies\FilenameStrategy;
 use Objectivehtml\Media\Strategies\DirectoryStrategy;
 use Objectivehtml\Media\Conversions\PreserveOriginal;
-use Objectivehtml\Media\Conversions\Video\EncodeForWeb;
 use Objectivehtml\Media\Strategies\ModelMatchingStrategy;
 use Objectivehtml\Media\Http\Controllers\MediaController;
 use Objectivehtml\Media\Conversions\Image\ResizeMaxDimensions;
@@ -246,14 +245,16 @@ return [
         // By default the starting time (in seconds) is set to 30 because the
         // first frame is extract synchronously. If that is set to false, this
         // option should be set to 0 if you want the first frame.
-        'extract_frames_starting' => 30,
+        'extract_frames_starting_at' => 30,
 
         // Extract frame every X seconds.
-        'extract_frames_every' => 30,
+        'extract_frames_interval' => 30,
+
+        // The context value that is given to videos that have been encoded.
+        'encoded_context_key' => 'encoded',
 
         'conversions' => [
-            [PreserveOriginal::class],
-            [EncodeForWeb::class]
+            [PreserveOriginal::class]
         ],
 
         'mimes' => [
@@ -333,7 +334,7 @@ return [
             */
 
             'duration' => 9999999,
-            
+
         ]
 
     ]

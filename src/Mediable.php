@@ -78,21 +78,26 @@ trait Mediable {
      * @param  bool $sync
      * @return Illuminate\Eloquent\Database\Model
      */
-    public function addMediaFromRequest(Request $request, Closure $callback = null): Collection
+    public function addMediaFromRequest(Request $request, Closure $callback = null, bool $detach = false): Collection
     {
         $files = collect($request->file())
             ->only(app(MediaService::class)->config('request'))
             ->flatten(1);
 
+        $input = app(MediaService::class)
+            ->getModelsFromRequest($request);
+
+        if($detach && $files->count() + $input->count()) {
+            $this->media()->detach();
+        }
+
         $fileModels = collect($files)->map(function($file) use ($callback) {
             return $this->addMedia($file, $callback);
         });
 
-        $inputModels = app(MediaService::class)
-            ->getModelsFromRequest($request)
-            ->each(function($model) {
-                app(MediaService::class)->attachTo($model, $this);
-            });
+        $inputModels = $input->each(function($model) {
+            app(MediaService::class)->attachTo($model, $this);
+        });
 
         return $fileModels->concat($inputModels);
     }
@@ -106,9 +111,7 @@ trait Mediable {
      */
     public function syncMediaFromRequest(Request $request, Closure $callback = null): Collection
     {
-        $this->media()->detach();
-
-        return $this->addMediaFromRequest($request, $callback);
+        return $this->addMediaFromRequest($request, $callback, true);
     }
 
     /**

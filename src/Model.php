@@ -2,7 +2,6 @@
 
 namespace Objectivehtml\Media;
 
-use Objectivehtml\Media\Filters\Filters;
 use Objectivehtml\Media\Support\Metable;
 use Objectivehtml\Media\Jobs\StartQueue;
 use Objectivehtml\Media\Jobs\MarkAsReady;
@@ -11,15 +10,20 @@ use Objectivehtml\Media\Jobs\ApplyFilters;
 use Objectivehtml\Media\Support\ExifData;
 use Objectivehtml\Media\Support\QueryScopes;
 use Objectivehtml\Media\Jobs\GenerateImages;
+use Objectivehtml\Media\Events\FavoriteMedia;
 use Objectivehtml\Media\Jobs\ApplyConversion;
 use Objectivehtml\Media\Jobs\MoveModelToDisk;
 use Objectivehtml\Media\Jobs\ApplyConversions;
+use Objectivehtml\Media\Events\UnfavoriteMedia;
 use Objectivehtml\Media\Conversions\Conversions;
 use Objectivehtml\Media\Jobs\RemoveModelFromDisk;
-use Objectivehtml\Media\Jobs\StartProcessingMedia;
+use Objectivehtml\Media\Jobs\StartedProcessingMedia;
+use Objectivehtml\Media\Jobs\StoppedProcessingMedia;
 use Illuminate\Database\Eloquent\Model as BaseModel;
 use Objectivehtml\Media\Contracts\StreamableResource;
 use Intervention\Image\Exception\NotReadableException;
+use Objectivehtml\Media\Contracts\Filter as FilterInterface;
+use Objectivehtml\Media\Contracts\Conversion as ConversionInterface;
 
 class Model extends BaseModel
 {
@@ -46,6 +50,7 @@ class Model extends BaseModel
      */
     protected $fillable = [
         'ready',
+        'favorite',
         'disk',
         'context',
         'title',
@@ -79,6 +84,7 @@ class Model extends BaseModel
      */
     protected $casts = [
         'ready' => 'bool',
+        'favorite' => 'bool',
         'filters' => 'array',
         'conversions' => 'array',
         'tags' => 'collection',
@@ -91,6 +97,7 @@ class Model extends BaseModel
      * @var array
      */
     protected $appends = [
+        'filesize',
         'relative_path',
         'url'
     ];
@@ -171,9 +178,16 @@ class Model extends BaseModel
      *
      * @return void
      */
-    public function applyConversions()
+    public function applyConversions(bool $useGlobalConversions = true)
     {
-        $conversions = app(MediaService::class)->conversions($this)->map(function($conversion) {
+        if($useGlobalConversions) {
+            $conversions = app(MediaService::class)->conversions($this);
+        }
+        else {
+            $conversions = $this->conversions;
+        }
+
+        $conversions = collect($conversions)->map(function($conversion) {
             return new ApplyConversion($this, $conversion);
         });
 
@@ -195,6 +209,37 @@ class Model extends BaseModel
     }
 
     /**
+     * Set the extension attribute and automatically change the extension on
+     * the filename.
+     *
+     * @param string $value
+     * @return void
+     */
+    public function setExtensionAttribute($value)
+    {
+        if($value && $this->extension) {
+            $this->changeFilenameExtension($value);
+        }
+
+        $this->attributes['extension'] = $value;
+    }
+
+
+    /**
+     * Change the filebane's extension in the database. This method does not
+     * actually alter the file.
+     *
+     * @param  string $extension
+     * @return void
+     */
+    public function changeFilenameExtension(string $extension)
+    {
+        if($this->filename && $extension) {
+            $this->filename = str_replace('.'.$this->extension, '.'.$extension, $this->filename);
+        }
+    }
+
+    /**
      * Get the file_exists attribute.
      *
      * @param $value
@@ -206,6 +251,11 @@ class Model extends BaseModel
         }
 
         return null;
+    }
+
+    public function getFilesizeAttribute()
+    {
+        return app(MediaService::class)->formatBytes($this->size);
     }
 
     /**
@@ -295,7 +345,19 @@ class Model extends BaseModel
      */
     public function getConversionsAttribute($value)
     {
-        return new Conversions($this->castAttribute('conversions', $value, []));
+        return collect($this->castAttribute('conversions', $value))
+            ->map(function($conversion) {
+                if($conversion instanceof ConversionInterface) {
+                    return $conversion;
+                }
+                else if(is_array($conversion)) {
+                    if(isset($conversion[1])) {
+                        return $conversion[0]::make(...$conversion[1]);
+                    }
+
+                    return $conversion[0]::make();
+                }
+            });
     }
 
     /**
@@ -305,7 +367,19 @@ class Model extends BaseModel
      */
     public function getFiltersAttribute($value)
     {
-        return new Filters($this->castAttribute('filters', $value));
+        return collect($this->castAttribute('filters', $value))
+            ->map(function($filter) {
+                if($filter instanceof FilterInterface) {
+                    return $filter;
+                }
+                else if(is_array($filter)) {
+                    if(isset($filter[1])) {
+                        return $filter[0]::make(...$filter[1]);
+                    }
+
+                    return $filter[0]::make();
+                }
+            });
     }
 
     /**
@@ -403,7 +477,9 @@ class Model extends BaseModel
         else {
             $meta = $this->meta;
             $meta->put($key, $value);
-            $this->setAttribute('meta', $meta->filter());
+            $this->setAttribute('meta', $meta->filter(function($item) {
+                return !is_null($item);
+            }));
         }
     }
 
@@ -439,6 +515,26 @@ class Model extends BaseModel
         return $this;
     }
 
+    public function favorite()
+    {
+        $this->favorite = true;
+        $this->save();
+
+        event(new FavoriteMedia($this));
+
+        return $this;
+    }
+
+    public function unfavorite()
+    {
+        $this->favorite = false;
+        $this->save();
+
+        event(new UnfavoriteMedia($this));
+
+        return $this;
+    }
+
     /**
      * The "booting" method of the model.
      *
@@ -464,18 +560,6 @@ class Model extends BaseModel
             if($model->resource() && ($attachTo = $model->resource()->attachTo())) {
                 app(MediaService::class)->attachTo($model, $attachTo);
             }
-
-            if(!$model->exif && $model->fileExists) {
-                try {
-                    if($exif = app(MediaService::class)->image($model->path)->exif()) {
-                        $model->meta('exif', $exif);
-                        $model->save();
-                    }
-                }
-                catch(NotReadableException $e) {
-                    // If the file can't be read, then it has no exif data...
-                }
-            }
         });
 
         static::created(function(Model $model) {
@@ -486,24 +570,49 @@ class Model extends BaseModel
             }
 
             if($model->isParent() && $model->fileExists) {
-                StartProcessingMedia::withChain(
-                    app(MediaService::class)
-                        ->jobs($model)
-                        ->concat([
-                            new ApplyConversions($model),
-                            new ApplyFilters($model),
-                            new MoveModelToDisk($model, $toDisk),
-                            new MarkAsReady($model)
-                        ])
-                        ->toArray()
-                )->dispatch($model);
+                $jobs = collect()
+                    ->concat(app(MediaService::class)->jobs($model))
+                    ->concat(
+                        app(MediaService::class)
+                            ->conversions($model)
+                            ->map(function($conversion) use ($model) {
+                                return new ApplyConversion($model, $conversion);
+                            })
+                    )
+                    ->concat(
+                        app(MediaService::class)
+                            ->filters($model)
+                            ->map(function($filter) use ($model) {
+                                return new ApplyFilter($model, $filter);
+                            })
+                    )
+                    ->concat([
+                        new MoveModelToDisk($model, $toDisk),
+                        new MarkAsReady($model),
+                        new StoppedProcessingMedia($model)
+                    ]);
+
+                StartedProcessingMedia::withChain($jobs)->dispatch($model);
             }
-            else if($model->fileExists) {
-                StartProcessingMedia::withChain([
-                    new ApplyFilters($model),
-                    new MoveModelToDisk($model, $toDisk),
-                    new MarkAsReady($model),
-                ])->dispatch($model);
+            else if(file_exists($model->path)) {
+                $jobs = collect()
+                    ->concat(
+                        $model->filters->map(function($filter) use ($model) {
+                            return new ApplyFilter($model, $filter);
+                        })
+                    )
+                    ->concat(
+                        $model->conversions->map(function($conversion) use ($model) {
+                            return new ApplyConversion($model, $conversion);
+                        })
+                    )
+                    ->concat([
+                        new MoveModelToDisk($model, $toDisk),
+                        new MarkAsReady($model),
+                        new StoppedProcessingMedia($model)
+                    ]);
+
+                StartedProcessingMedia::withChain($jobs)->dispatch($model);
             }
         });
     }
