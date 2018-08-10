@@ -8,9 +8,9 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Objectivehtml\Media\Events\StartedProcessingMedia as StartProcessingEventEvent;
+use Objectivehtml\Media\Events\FinishedProcessingMedia;
 
-class StartedProcessingMedia implements ShouldQueue
+class FinishProcessingMedia implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -33,6 +33,6 @@ class StartedProcessingMedia implements ShouldQueue
      */
     public function handle()
     {
-        event(new StartProcessingEventEvent($this->model));
+        event(new FinishedProcessingMedia($this->model));
     }
 }

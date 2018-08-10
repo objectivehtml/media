@@ -3,12 +3,13 @@
 namespace Objectivehtml\Media\Jobs;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Queue\SerializesModels;
 use Objectivehtml\Media\Model;
+use Objectivehtml\Media\MediaService;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Events\RemovedModelFromDisk;
 
 class RemoveModelFromDisk implements ShouldQueue
 {
@@ -45,5 +46,7 @@ class RemoveModelFromDisk implements ShouldQueue
                 app(MediaService::class)->storage()->disk($this->model->disk)->deleteDirectory($this->model->directory);
             }
         }
+
+        event(new RemovedModelFromDisk($this->model));
     }
 }

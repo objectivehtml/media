@@ -7,24 +7,28 @@ use Illuminate\Broadcasting\Channel;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Broadcasting\PresenceChannel;
+use Objectivehtml\Media\Contracts\Conversion;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
-class ApplyFilter
+class StartedApplyingConversion
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $model;
+
+    public $conversion;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(Model $model)
+    public function __construct(Model $model, Conversion $conversion)
     {
         $this->model = $model;
+        $this->conversion = $conversion;
     }
 
     /**

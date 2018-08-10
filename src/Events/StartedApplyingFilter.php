@@ -5,26 +5,30 @@ namespace Objectivehtml\Media\Events;
 use Objectivehtml\Media\Model;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Queue\SerializesModels;
+use Objectivehtml\Media\Contracts\Filter;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
-class StoppedProcessingMedia
+class StartedApplyingFilter
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $model;
+
+    public $filter;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(Model $model)
+    public function __construct(Model $model, Filter $filter)
     {
         $this->model = $model;
+        $this->conversion = $filter;
     }
 
     /**

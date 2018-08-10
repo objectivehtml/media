@@ -14,13 +14,15 @@ class Homepage extends EncodeVideo {
 
         'audioKbps' => 56,
 
+        'context' => 'homepage',
+
         'extension' => 'mp4',
 
-        'height' => 576,
+        'height' => 720,
 
         'mime' => 'video/mp4',
 
-        'muted' => true,
+        'muted' => false,
 
         'replace' => false,
 
@@ -28,7 +30,7 @@ class Homepage extends EncodeVideo {
 
         'timeout' => 0,
 
-        'videoKbps' => 300,
+        'videoKbps' => 275,
 
         'width' => 1280
 

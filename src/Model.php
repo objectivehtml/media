@@ -10,15 +10,15 @@ use Objectivehtml\Media\Jobs\ApplyFilters;
 use Objectivehtml\Media\Support\ExifData;
 use Objectivehtml\Media\Support\QueryScopes;
 use Objectivehtml\Media\Jobs\GenerateImages;
-use Objectivehtml\Media\Events\FavoriteMedia;
+use Objectivehtml\Media\Events\FavoritedMedia;
 use Objectivehtml\Media\Jobs\ApplyConversion;
 use Objectivehtml\Media\Jobs\MoveModelToDisk;
 use Objectivehtml\Media\Jobs\ApplyConversions;
-use Objectivehtml\Media\Events\UnfavoriteMedia;
+use Objectivehtml\Media\Events\UnfavoritedMedia;
 use Objectivehtml\Media\Conversions\Conversions;
 use Objectivehtml\Media\Jobs\RemoveModelFromDisk;
-use Objectivehtml\Media\Jobs\StartedProcessingMedia;
-use Objectivehtml\Media\Jobs\StoppedProcessingMedia;
+use Objectivehtml\Media\Jobs\StartProcessingMedia;
+use Objectivehtml\Media\Jobs\FinishProcessingMedia;
 use Illuminate\Database\Eloquent\Model as BaseModel;
 use Objectivehtml\Media\Contracts\StreamableResource;
 use Intervention\Image\Exception\NotReadableException;
@@ -171,41 +171,6 @@ class Model extends BaseModel
     public function children()
     {
         return $this->hasMany(static::class, 'parent_id');
-    }
-
-    /**
-     * Apply the filters to the model's file.
-     *
-     * @return void
-     */
-    public function applyConversions(bool $useGlobalConversions = true)
-    {
-        if($useGlobalConversions) {
-            $conversions = app(MediaService::class)->conversions($this);
-        }
-        else {
-            $conversions = $this->conversions;
-        }
-
-        $conversions = collect($conversions)->map(function($conversion) {
-            return new ApplyConversion($this, $conversion);
-        });
-
-        StartQueue::withChain($conversions->toArray())->dispatch();
-    }
-
-    /**
-     * Apply the filters to the model's file.
-     *
-     * @return void
-     */
-    public function applyFilters()
-    {
-        $filters = app(MediaService::class)->filters($this)->map(function($filter) {
-            return new ApplyFilter($this, $filter);
-        });
-
-        StartQueue::withChain($filters->toArray())->dispatch();
     }
 
     /**
@@ -520,7 +485,7 @@ class Model extends BaseModel
         $this->favorite = true;
         $this->save();
 
-        event(new FavoriteMedia($this));
+        event(new FavoritedMedia($this));
 
         return $this;
     }
@@ -530,7 +495,7 @@ class Model extends BaseModel
         $this->favorite = false;
         $this->save();
 
-        event(new UnfavoriteMedia($this));
+        event(new UnfavoritedMedia($this));
 
         return $this;
     }
@@ -589,10 +554,10 @@ class Model extends BaseModel
                     ->concat([
                         new MoveModelToDisk($model, $toDisk),
                         new MarkAsReady($model),
-                        new StoppedProcessingMedia($model)
+                        new FinishProcessingMedia($model)
                     ]);
 
-                StartedProcessingMedia::withChain($jobs)->dispatch($model);
+                StartProcessingMedia::withChain($jobs)->dispatch($model);
             }
             else if(file_exists($model->path)) {
                 $jobs = collect()
@@ -609,10 +574,10 @@ class Model extends BaseModel
                     ->concat([
                         new MoveModelToDisk($model, $toDisk),
                         new MarkAsReady($model),
-                        new StoppedProcessingMedia($model)
+                        new FinishProcessingMedia($model)
                     ]);
 
-                StartedProcessingMedia::withChain($jobs)->dispatch($model);
+                StartProcessingMedia::withChain($jobs)->dispatch($model);
             }
         });
     }

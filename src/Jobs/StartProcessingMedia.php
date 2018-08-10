@@ -3,13 +3,14 @@
 namespace Objectivehtml\Media\Jobs;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Queue\SerializesModels;
 use Objectivehtml\Media\Model;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Objectivehtml\Media\Events\StartedProcessingMedia;
 
-class GenerateImages implements ShouldQueue
+class StartProcessingMedia implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -18,7 +19,6 @@ class GenerateImages implements ShouldQueue
     /**
      * Create a new job instance.
      *
-     * @param  Model  $model
      * @return void
      */
     public function __construct(Model $model)
@@ -29,11 +29,10 @@ class GenerateImages implements ShouldQueue
     /**
      * Execute the job.
      *
-     * @param  AudioProcessor  $processor
      * @return void
      */
     public function handle()
     {
-        //
+        event(new StartedProcessingMedia($this->model));
     }
 }

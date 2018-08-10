@@ -9,8 +9,8 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Objectivehtml\Media\Events\MovedModelToDisk;
 use Objectivehtml\Media\Exceptions\CannotMoveModelException;
-use Objectivehtml\Media\Events\MoveModelToDisk as MoveModelToDiskEvent;
 
 class MoveModelToDisk implements ShouldQueue
 {
@@ -48,7 +48,7 @@ class MoveModelToDisk implements ShouldQueue
         try {
             app(MediaService::class)->changeDisk($this->model, $this->disk);
 
-            event(new MoveModelToDiskEvent($this->model));
+            event(new MovedModelToDisk($this->model));
         }
         catch(CannotMoveModelException $e) {
             // Intentionally do nothing...

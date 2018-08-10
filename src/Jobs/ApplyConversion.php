@@ -10,8 +10,8 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Objectivehtml\Media\Contracts\Conversion;
-use Objectivehtml\Media\Events\ApplyConversion as ApplyConversionEvent;
-//use Objectivehtml\Media\Exceptions\CannotApplyFiltersException;
+use Objectivehtml\Media\Events\StartedApplyingConversion;
+use Objectivehtml\Media\Events\FinishedApplyingConversion;
 
 class ApplyConversion implements ShouldQueue
 {
@@ -41,8 +41,10 @@ class ApplyConversion implements ShouldQueue
      */
     public function handle()
     {
+        event(new StartedApplyingConversion($this->model, $this->conversion));
+
         $this->conversion->apply($this->model);
 
-        event(new ApplyConversionEvent($this->model));
+        event(new FinishedApplyingConversion($this->model, $this->conversion));
     }
 }

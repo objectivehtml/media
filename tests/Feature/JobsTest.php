@@ -43,30 +43,6 @@ class JobsTest extends TestCase
         app(MediaService::class)->storage()->disk($toDisk)->assertExists($model->relative_path);
     }
 
-    public function testResizeMaxDimensions()
-    {
-        $file = UploadedFile::fake()->image('test.jpeg', 3072, 2304);
-
-        $resource = app(MediaService::class)->resource($file);
-
-        $model = app(MediaService::class)->model([
-            'size' => $resource->size(),
-            'disk' => app(MediaService::class)->config('temp.disk'),
-            'orig_filename' => $resource->originalFilename()
-        ]);
-
-        $model->save();
-
-        app(MediaService::class)->storage()->disk($model->disk)->put($model->relative_path, $resource->getResource());
-
-        dispatch(new ResizeMaxDimensions($model, $maxWidth = 50, $maxHeight = 50));
-
-        $image = Image::make(app(MediaService::class)->storage()->disk($model->disk)->path($model->relative_path));
-
-        $this->assertThat($image->width(), $this->equalTo($maxWidth));
-        $this->assertThat($image->height(), $this->equalTo($maxHeight));
-    }
-
     public function testRemoveFileFromDisk()
     {
         $file = UploadedFile::fake()->image('test.jpeg', 10, 10);

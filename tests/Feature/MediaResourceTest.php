@@ -196,4 +196,31 @@ class MediaResourceTest extends TestCase
         $this->assertCount(6, $model->children);
     }
 
+    public function testHomepageVideoConversionUsingConvert()
+    {
+        $file = new File($path = __dir__ . '/../src/iphone.m4v');
+
+        $parent = Model::create($data = [
+            'disk' => 'local',
+            'filename' => 'iphone.m4v',
+            'size' => $file->getSize(),
+            'mime' => $file->getMimeType(),
+            'extension' => $file->guessExtension(),
+        ]);
+
+        app(MediaService::class)->storage()->disk($parent->disk)->put($parent->relative_path, $file);
+
+        $this->assertThat($parent->id, $this->equalTo(1));
+
+        $model = app(MediaService::class)
+            ->resource($path)
+            ->context('homepage')
+            ->conversion(new Homepage([
+                'replace' => true
+            ]))
+            ->convert($parent);
+
+            dd($model);
+    }
+
 }

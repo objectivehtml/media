@@ -9,8 +9,9 @@ use FFMpeg\Coordinate\Dimension;
 use Objectivehtml\Media\MediaService;
 use Objectivehtml\Media\Support\ApplyToVideos;
 use Objectivehtml\Media\Conversions\Conversion;
-use Objectivehtml\Media\Events\VideoEncodingComplete;
-use Objectivehtml\Media\Events\VideoEncodingProgress;
+use Objectivehtml\Media\Events\VideoEncodingStarted;
+use Objectivehtml\Media\Events\VideoEncodingFinished;
+use Objectivehtml\Media\Events\VideoEncodingProgressed;
 use Objectivehtml\Media\Exceptions\FileNotFoundException;
 use Objectivehtml\Media\Exceptions\FilePathsCannotMatchException;
 use Objectivehtml\Media\Exceptions\CannotFindOriginalFileException;
@@ -27,6 +28,8 @@ class EncodeVideo extends Conversion implements ConversionInterface {
         'audioChannels' => 2,
 
         'audioKbps' => 256,
+
+        'context' => null,
 
         'extension' => 'mp4',
 
@@ -64,9 +67,11 @@ class EncodeVideo extends Conversion implements ConversionInterface {
     {
         $subject = $this->subject($model);
 
+        event(new VideoEncodingStarted($subject));
+
         $this->encode($subject, $this->video($model), $model);
 
-        event(new VideoEncodingComplete($subject));
+        event(new VideoEncodingFinished($subject));
     }
 
     public function encode(Model $model, Video $video, $parent)
@@ -86,10 +91,8 @@ class EncodeVideo extends Conversion implements ConversionInterface {
 
     public function subject(Model $model)
     {
-        $context = app(MediaService::class)->config('video.encoded_context_key', 'encoded');
-
         if($this->replace) {
-            $model->context = $context;
+            $model->context = $this->context ?: $model->context;
             $model->meta('encoding', true);
             $model->save();
 
@@ -97,10 +100,10 @@ class EncodeVideo extends Conversion implements ConversionInterface {
         }
 
         $child = $model::make([
-            'context' => $context,
-            'orig_filename' => $model->orig_filename,
-            'directory' => $model->directory,
+            'context' => $this->context ?: app(MediaService::class)->config('video.encoded_context_key', 'encoded'),
             'extension' => $this->extension,
+            'directory' => $model->directory,
+            'orig_filename' => $model->orig_filename,
             'mime' => $this->mime,
             'meta' => [
                 'encoding' => true,
@@ -141,11 +144,11 @@ class EncodeVideo extends Conversion implements ConversionInterface {
                 $model->meta('encoded_percent', $percentage);
                 $model->save();
 
-                event(new VideoEncodingProgress($model));
+                event(new VideoEncodingProgressed($model));
             });
 
         if($this->muted) {
-            // $format->setAdditionalParameters(['-an']);
+            $format->setAdditionalParameters(['-an']);
         }
 
         return $format;
@@ -170,8 +173,11 @@ class EncodeVideo extends Conversion implements ConversionInterface {
         if($original = $model->children()->original()->first()) {
             $path = $original->path;
         }
-        else if($model->context === 'original') {
-            $path = $model->path;
+        else if($model->parent && ($original = $model->parent->children()->original()->first())) {
+            $path = $original->path;
+        }
+        else if($model->parent) {
+            $path = ($model->parent->children()->original()->first() ?: $model->parent)->path;
         }
         else {
             throw new CannotFindOriginalFileException;

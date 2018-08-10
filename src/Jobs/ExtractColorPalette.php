@@ -3,15 +3,16 @@
 namespace Objectivehtml\Media\Jobs;
 
 use Illuminate\Bus\Queueable;
+use Objectivehtml\Media\Model;
 use League\ColorExtractor\Color;
 use League\ColorExtractor\Palette;
-use Objectivehtml\Media\Model;
 use Objectivehtml\Media\MediaService;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use League\ColorExtractor\ColorExtractor;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Objectivehtml\Media\Events\ExtractedColorPalette;
 
 class ExtractColorPalette implements ShouldQueue
 {
@@ -40,6 +41,7 @@ class ExtractColorPalette implements ShouldQueue
     public function handle()
     {
         $image = app(MediaService::class)->image($this->model->path);
+
         $image->fit(
             min($this->model->width, app(MediaService::class)->config('image.colors.max_width', 600)),
             min($this->model->height, app(MediaService::class)->config('image.colors.max_height', 600))
@@ -59,5 +61,7 @@ class ExtractColorPalette implements ShouldQueue
             $this->model->meta('colors', $colors);
             $this->model->save();
         }
+
+        event(new ExtractedColorPalette($this->model));
     }
 }
