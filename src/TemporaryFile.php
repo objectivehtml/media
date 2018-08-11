@@ -44,10 +44,10 @@ class TemporaryFile {
             throw new InvalidResourceException();
         }
 
-        return new static(static::model($resource), $callback);
+        return new static(static::model($model, $resource), $callback);
     }
 
-    public static function model(StreamableResource $resource)
+    public static function model(Model $parent, StreamableResource $resource)
     {
         $model = TemporaryModel::make([
             'extension' => $resource->extension(),
@@ -55,6 +55,7 @@ class TemporaryFile {
             'size' => $resource->size()
         ]);
 
+        $model->parent()->associate($parent);
         $model->setResource($resource);
         $model->save();
 
