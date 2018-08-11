@@ -91,9 +91,10 @@ class EncodeVideo extends Conversion implements ConversionInterface {
 
             $subject->mime = $this->mime;
             $subject->extension = $this->extension;
-
-            if($path !== $subject->path) {
-                unlink($subject->path);
+            $subject->save();
+            
+            if($path !== $subject->path && file_exists($path)) {
+                unlink($path);
             }
         }
 
