@@ -34,7 +34,7 @@ class JobsTest extends TestCase
 
         $model->save();
 
-        app(MediaService::class)->storage()->disk($fromDisk)->put($model->relative_path, $resource->getResource());
+        app(MediaService::class)->storage()->disk($fromDisk)->put($model->relative_path, $resource->stream());
         app(MediaService::class)->storage()->disk($fromDisk)->assertExists($model->relative_path);
 
         dispatch(new MoveModelToDisk($model, $toDisk = 'public'));
@@ -57,7 +57,7 @@ class JobsTest extends TestCase
 
         $model->save();
 
-        app(MediaService::class)->storage()->disk($model->disk)->put($model->relative_path, $resource->getResource());
+        app(MediaService::class)->storage()->disk($model->disk)->put($model->relative_path, $resource->stream());
 
         dispatch(new RemoveModelFromDisk($model));
 

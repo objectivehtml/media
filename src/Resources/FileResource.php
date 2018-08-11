@@ -45,7 +45,7 @@ class FileResource extends StreamableResource {
             return $this->resource->tempFile;
         }
 
-        if(file_exists($path = $this->resource->getPath())) {
+        if(file_exists($path = $this->resource->getPathname())) {
             return fopen($path, 'rb');
         }
 

@@ -2,6 +2,7 @@
 
 namespace Objectivehtml\Media\Resources;
 
+use Mimey\MimeTypes;
 use Intervention\Image\Image;
 use Objectivehtml\Media\Model;
 use Illuminate\Http\Testing\File as FakeFile;
@@ -22,7 +23,7 @@ class ImageResource extends StreamableResource {
 
     public function extension(): ?string
     {
-        return null;
+        return (new MimeTypes)->getExtension($this->mime());
     }
 
     public function size(): int
