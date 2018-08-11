@@ -3,7 +3,7 @@
 namespace Objectivehtml\Media;
 
 use Objectivehtml\Media\Jobs\MoveModelToDisk;
-use Objectivehtml\Media\Jobs\RemoveModelFromDisk;
+use Objectivehtml\Media\Jobs\RemoveFileFromDisk;
 
 class MediaObserver
 {
@@ -67,10 +67,10 @@ class MediaObserver
     public function deleting(Model $model)
     {
         foreach($model->children as $child) {
-            RemoveModelFromDisk::dispatch($child);
+            RemoveFileFromDisk::dispatch($model->disk, $model->relative_path);
         }
 
-        RemoveModelFromDisk::dispatch($model);
+        RemoveFileFromDisk::dispatch($model->disk, $model->relative_path);
     }
 
 }
