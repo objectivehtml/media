@@ -2,6 +2,8 @@
 
 namespace Objectivehtml\Media\Support;
 
+use Objectivehtml\Media\MediaService;
+
 trait QueryScopes {
 
     /**
@@ -251,6 +253,19 @@ trait QueryScopes {
             }
         });
     }
+
+    /**
+     * Add a query scope for the temporary context attribute
+     *
+     * @param Illuminate\Database\Eloquent\Builder $query
+     * @param mixed $value
+     * @return void
+     */
+    public function scopeTemporary($query)
+    {
+        $query->context(app(MediaService::class)->config('temp.context'));
+    }
+
 
     /**
      * Add a query scope for the title attribute
