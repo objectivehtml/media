@@ -263,7 +263,7 @@ trait QueryScopes {
      */
     public function scopeTemporary($query)
     {
-        $query->context(app(MediaService::class)->config('temp.context'));
+        $query->context(app(MediaService::class)->config('temp.context', '__temp__'));
     }
 
 
