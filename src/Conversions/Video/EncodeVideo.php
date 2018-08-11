@@ -7,6 +7,7 @@ use FFMpeg\Format\Video\X264;
 use Objectivehtml\Media\Model;
 use FFMpeg\Coordinate\Dimension;
 use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\TemporaryFile;
 use Objectivehtml\Media\Support\ApplyToVideos;
 use Objectivehtml\Media\Conversions\Conversion;
 use Objectivehtml\Media\Events\VideoEncodingStarted;
@@ -20,8 +21,6 @@ use Objectivehtml\Media\Contracts\Conversion as ConversionInterface;
 class EncodeVideo extends Conversion implements ConversionInterface {
 
     use ApplyToVideos;
-
-    public $tempFile;
 
     public $options = [
 
@@ -67,39 +66,50 @@ class EncodeVideo extends Conversion implements ConversionInterface {
 
     public function apply(Model $model)
     {
+        $original = $this->extractOriginalModel($model);
+
+        if(!file_exists($original->path)) {
+            TemporaryFile::make($original, function($original) use($model) {
+                $this->performApply($original, $model);
+            });
+        }
+        else {
+            $this->performApply($original, $model);
+        }
+    }
+
+    protected function performApply(Model $original, Model $model)
+    {
         $subject = $this->subject($model);
 
         event(new VideoEncodingStarted($subject));
 
-        $this->encode($subject, $this->video($model));
+        $this->encode($original, $subject);
+
+        if($this->replace) {
+            $path = $subject->path;
+
+            $subject->mime = $this->mime;
+            $subject->extension = $this->extension;
+
+            if($path !== $subject->path) {
+                unlink($subject->path);
+            }
+        }
 
         event(new VideoEncodingFinished($subject));
     }
 
-    public function encode(Model $model, Video $video)
+    public function encode(Model $original, Model $subject)
     {
-        $originalPath = $model->path;
+        $video = $this->video($original);
+        $video->save($this->format($original), $subject->path);
 
-        if($this->replace) {
-            $model->mime = $this->mime;
-            $model->extension = $this->extension;
-        }
-
-        $video->save($this->format($model), $model->path);
-
-        if($model->path !== $originalPath) {
-            unlink($deleteFile);
-        }
-
-        if($this->tempFile) {
-            $this->tempFile->delete();
-        }
-
-        $model->ready = true;
-        $model->meta('encoding', false);
-        $model->meta('encoded', true);
-        $model->size = filesize($model->path); //app(MediaService::class)->storage()->disk($model->disk)->size($model->relative_path);
-        $model->save();
+        $subject->ready = true;
+        $subject->meta('encoding', false);
+        $subject->meta('encoded', true);
+        $subject->size = filesize($subject->path);
+        $subject->save();
     }
 
     public function subject(Model $model)
@@ -131,43 +141,11 @@ class EncodeVideo extends Conversion implements ConversionInterface {
         return $child;
     }
 
-    public function createTempFile(Model $model): Model
-    {
-        $file = fopen($model->url, 'rb');
-
-        $temp = app(MediaService::class)
-            ->model([
-                'context' => '__temp__'.sha1($model->url),
-                'directory' => $model->directory,
-                'extension' => $model->extension,
-                'mime' => $model->mime
-            ]);
-
-        $temp->parent()->associate($model);
-        $temp->save();
-
-        app(MediaService::class)
-            ->storage()
-            ->disk($temp->disk)
-            ->put($temp->relative_path, $file, 'public');
-
-        $temp->size = filesize($temp->path);
-        $temp->save();
-
-        return $temp;
-    }
-
     public function video(Model $model): Video
     {
-        $original = $this->extractOriginalModel($model);
-
-        if(!file_exists($original->path)) {
-            $this->tempFile = $this->createTempFile($original);
-        }
-
         $video = app(MediaService::class)
             ->ffmpeg()
-            ->open($this->tempFile ? $this->tempFile->path : $original->path);
+            ->open($model->path);
 
         if($this->width && $this->height) {
             $video->filters()

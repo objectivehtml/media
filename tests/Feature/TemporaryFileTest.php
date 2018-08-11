@@ -9,7 +9,7 @@ use Objectivehtml\Media\MediaService;
 use Objectivehtml\Media\TemporaryFile;
 use Objectivehtml\Media\TemporaryModel;
 
-class TemporaryModelTest extends TestCase
+class TemporaryFileTest extends TestCase
 {
 
     public function testCreatingFromUploadedFile()
