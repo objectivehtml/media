@@ -4,6 +4,7 @@ namespace Objectivehtml\Media\Jobs;
 
 use Illuminate\Bus\Queueable;
 use Objectivehtml\Media\Model;
+use Objectivehtml\Media\MediaService;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -33,6 +34,18 @@ class FinishProcessingMedia implements ShouldQueue
      */
     public function handle()
     {
+        if($this->model->shouldChangeDisk()) {
+            collect([
+                $parent = $this->model->parent ?: $this->model
+            ])
+            ->concat($parent->children()->ready()->get())
+            ->each(function($model) {
+                MoveModelToDisk::dispatch($model, (
+                    $model->meta->get('move_to') ?: app(MediaService::class)->config('disk')
+                ));
+            });
+        }
+
         event(new FinishedProcessingMedia($this->model));
     }
 }

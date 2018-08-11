@@ -16,7 +16,6 @@ use Objectivehtml\Media\Jobs\MoveModelToDisk;
 use Objectivehtml\Media\Jobs\ApplyConversions;
 use Objectivehtml\Media\Events\UnfavoritedMedia;
 use Objectivehtml\Media\Conversions\Conversions;
-use Objectivehtml\Media\Jobs\RemoveModelFromDisk;
 use Objectivehtml\Media\Jobs\StartProcessingMedia;
 use Objectivehtml\Media\Jobs\FinishProcessingMedia;
 use Illuminate\Database\Eloquent\Model as BaseModel;
@@ -507,6 +506,11 @@ class Model extends BaseModel
         return $this;
     }
 
+    /**
+     * Determines if the model needs moved to another disk.
+     *
+     * @return bool
+     */
     public function shouldChangeDisk()
     {
         if($this->isParent()) {
@@ -516,10 +520,29 @@ class Model extends BaseModel
         return $this->ready && !$this->parent->temporary();
     }
 
-    public function temporary()
+    /**
+     * Determines if the model is being stored on the temp disk. This method
+     * intentionally ignores models with the __temp__ context because those
+     * models are always stored on the temp disk and get deleted automatically.
+     *
+     * @return bool
+     */
+    public function temporary(): bool
     {
-        return $this->disk === app(MediaService::class)->config('temp.disk') &&
-               $this->disk !== app(MediaService::class)->config('disk');
+        return !$this->isTemporaryFile() &&
+                $this->disk === app(MediaService::class)->config('temp.disk', 'public') &&
+                $this->disk !== app(MediaService::class)->config('disk', 'public');
+    }
+
+    /**
+     * Determines if the model represents a temporary (local only) file that
+     * is automatically deleted after processing.
+     *
+     * @return bool
+     */
+    public function isTemporaryFile(): bool
+    {
+        return $this->context === app(MediaService::class)->config('temp.context', '__temp__');
     }
 
     /**
@@ -552,6 +575,10 @@ class Model extends BaseModel
         */
 
         static::created(function(Model $model) {
+            if($model->isTemporaryFile()) {
+                return;
+            }
+
             if($model->isParent() && $model->fileExists) {
                 $jobs = collect()
                     ->concat(app(MediaService::class)->jobs($model))
@@ -570,12 +597,11 @@ class Model extends BaseModel
                             })
                     )
                     ->concat([
-                        // new MoveModelToDisk($model, $toDisk),
                         new MarkAsReady($model),
                         new FinishProcessingMedia($model)
                     ]);
 
-                StartProcessingMedia::withChain($jobs)->dispatch($model);
+                StartProcessingMedia::withChain($jobs->all())->dispatch($model);
             }
             else if(file_exists($model->path)) {
                 $jobs = collect()
@@ -590,15 +616,15 @@ class Model extends BaseModel
                         })
                     )
                     ->concat([
-                        // new MoveModelToDisk($model, $toDisk),
                         new MarkAsReady($model),
                         new FinishProcessingMedia($model)
                     ]);
 
-                StartProcessingMedia::withChain($jobs)->dispatch($model);
+                StartProcessingMedia::withChain($jobs->all())->dispatch($model);
             }
         });
 
+        /*
         static::saved(function(Model $model) {
             if($model->shouldChangeDisk()) {
                 $toDisk = $model->meta->get('move_to') ?: app(MediaService::class)->config('disk');
@@ -614,6 +640,7 @@ class Model extends BaseModel
                 )->dispatch($model, $toDisk);
             }
         });
+        */
     }
 
 }

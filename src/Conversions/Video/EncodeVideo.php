@@ -86,31 +86,33 @@ class EncodeVideo extends Conversion implements ConversionInterface {
 
         $this->encode($original, $subject);
 
-        if($this->replace) {
-            $path = $subject->path;
-
-            $subject->mime = $this->mime;
-            $subject->extension = $this->extension;
-            $subject->save();
-            
-            if($path !== $subject->path && file_exists($path)) {
-                unlink($path);
-            }
-        }
-
         event(new VideoEncodingFinished($subject));
     }
 
     public function encode(Model $original, Model $subject)
     {
+        $path = $subject->path;
+
+        if($this->replace) {
+            $subject->mime = $this->mime;
+            $subject->extension = $this->extension;
+        }
+
         $video = $this->video($original);
         $video->save($this->format($original), $subject->path);
 
-        $subject->ready = true;
+        if(!$this->replace) {
+            $subject->ready = true;
+        }
+
         $subject->meta('encoding', false);
         $subject->meta('encoded', true);
         $subject->size = filesize($subject->path);
         $subject->save();
+
+        if($path !== $subject->path && file_exists($path)) {
+            unlink($path);
+        }
     }
 
     public function subject(Model $model)
