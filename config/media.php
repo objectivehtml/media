@@ -2,6 +2,7 @@
 
 use Objectivehtml\Media\Model;
 use Geocoder\Provider\Chain\Chain;
+use Objectivehtml\Media\TemporaryModel;
 use Objectivehtml\Media\Plugins\AudioPlugin;
 use Geocoder\Provider\GoogleMaps\GoogleMaps;
 use Objectivehtml\Media\Plugins\ImagePlugin;
@@ -35,7 +36,12 @@ return [
      * uploaded but are still being processed.
      */
     'temp' => [
-        'disk' => env('MEDIA_TEMP_DISK', 'public')
+
+        'disk' => env('MEDIA_TEMP_DISK', 'public'),
+
+        'model' => TemporaryModel::class,
+
+        'context' => '__temp__'
     ],
 
     /**

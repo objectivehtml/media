@@ -337,6 +337,18 @@ class Model extends BaseModel
         return $this->resource;
     }
 
+    public function ensureTemporaryDirectoryExists()
+    {
+        $path = app(MediaService::class)
+            ->storage()
+            ->disk(app(MediaService::class)->config('temp.disk'))
+            ->path($this->relative_path);
+
+        if(!file_exists($directory = dirname($path))) {
+            mkdir($directory);
+        }
+    }
+
     /**
      * Is this model a parent.
      *
@@ -501,7 +513,7 @@ class Model extends BaseModel
             return $this->ready && $this->meta->get('move_to');
         }
 
-        return !$this->parent->temporary();
+        return $this->ready && !$this->parent->temporary();
     }
 
     public function temporary()
@@ -584,6 +596,22 @@ class Model extends BaseModel
                     ]);
 
                 StartProcessingMedia::withChain($jobs)->dispatch($model);
+            }
+        });
+
+        static::saved(function(Model $model) {
+            if($model->shouldChangeDisk()) {
+                $toDisk = $model->meta->get('move_to') ?: app(MediaService::class)->config('disk');
+
+                MoveModelToDisk::withChain(
+                    $model->children()
+                        ->disk($model->disk)
+                        ->ready()
+                        ->get()
+                        ->map(function($child) use ($toDisk) {
+                            return new MoveModelToDisk($child, $toDisk);
+                        })
+                )->dispatch($model, $toDisk);
             }
         });
     }

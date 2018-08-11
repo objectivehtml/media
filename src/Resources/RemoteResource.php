@@ -3,20 +3,28 @@
 namespace Objectivehtml\Media\Resources;
 
 use Mimey\MimeTypes;
-use Illuminate\Http\Testing\File as FakeFile;
+use Illuminate\Support\Collection;
 use Symfony\Component\HttpFoundation\File\File;
 use Objectivehtml\Media\Exceptions\InvalidResourceException;
 
 class RemoteResource extends StreamableResource {
 
-    public function __construct(string $resource)
+    protected $meta;
+
+    protected $headers;
+
+    public function __construct($resource)
     {
+        if(!is_resource($resource)) {
+            $resource = fopen($resource, 'rb');
+        }
+
         parent::__construct($resource);
     }
 
-    public function mime(): string
+    public function mime(): ?string
     {
-        return (new \finfo(FILEINFO_MIME_TYPE))->buffer($this->resource);
+        return $this->headers()->get('Content-Type');
     }
 
     public function extension(): ?string
@@ -24,14 +32,14 @@ class RemoteResource extends StreamableResource {
         return (new MimeTypes)->getExtension($this->mime());
     }
 
-    public function size(): int
-    {
-        return $this->resource->getSize();
-    }
-
     public function filename(): string
     {
         return $this->resource->getFilename();
+    }
+
+    public function size(): int
+    {
+        return (int) $this->headers()->get('Content-Length');
     }
 
     public function originalFilename(): ?string
@@ -39,29 +47,42 @@ class RemoteResource extends StreamableResource {
         return null;
     }
 
-    public function getResource()
+    public function stream()
     {
-        if($this->resource instanceof FakeFile) {
-            return $this->resource->tempFile;
-        }
-        else if($this->resource instanceof File) {
-            return file_get_contents($this->resource->getPathname());
-        }
-
         return $this->resource;
     }
 
-    public function stream()
+    public function headers(): Collection
     {
-        if($this->resource instanceof FakeFile) {
-            return $this->resource->tempFile;
+        if(!$this->headers) {
+            $this->headers = collect($this->meta('wrapper_data'))
+                ->map(function($item) {
+                    $items = explode(': ', $item);
+
+                    if(isset($items[1])) {
+                        return [
+                            'key' => $items[0],
+                            'value' => $items[1]
+                        ];
+                    }
+                })
+                ->filter()
+                ->keyBy('key')
+                ->map(function($item) {
+                    return $item['value'];
+                });
         }
 
-        if(file_exists($path = $this->resource->getPath())) {
-            return file_get_contents($this->resource->getPath());
+        return $this->headers;
+    }
+
+    public function meta($key = null, $default = null)
+    {
+        if(!$this->meta) {
+            $this->meta = stream_get_meta_data($this->resource);
         }
 
-        throw new InvalidResourceException();
+        return $key ? (array_get($this->meta, $key) ?: $default) : $this->meta;
     }
 
 }

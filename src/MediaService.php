@@ -471,6 +471,9 @@ class MediaService implements ConfigableInterface {
         else if(is_string($file) && file_exists($file)) {
             return new FileResource(new File($file));
         }
+        else if(is_string($file) && $stream = fopen($file, 'rb')) {
+            return new RemoteResource($stream);
+        }
 
         throw new Exceptions\InvalidResourceException;
     }

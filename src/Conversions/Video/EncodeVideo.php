@@ -71,13 +71,15 @@ class EncodeVideo extends Conversion implements ConversionInterface {
 
         event(new VideoEncodingStarted($subject));
 
-        $this->encode($subject, $this->video($model), $model);
+        $this->encode($subject, $this->video($model));
 
         event(new VideoEncodingFinished($subject));
     }
 
-    public function encode(Model $model, Video $video, $parent)
+    public function encode(Model $model, Video $video)
     {
+        $originalPath = $model->path;
+
         if($this->replace) {
             $model->mime = $this->mime;
             $model->extension = $this->extension;
@@ -85,18 +87,19 @@ class EncodeVideo extends Conversion implements ConversionInterface {
 
         $video->save($this->format($model), $model->path);
 
-        if($model->context === $this->defaultContext()) {
-            $model->ready = true;
+        if($model->path !== $originalPath) {
+            unlink($deleteFile);
         }
-
-        $model->meta('encoding', false);
-        $model->meta('encoded', true);
-        $model->size = filesize($model->path); //app(MediaService::class)->storage()->disk($model->disk)->size($model->relative_path);
-        $model->save();
 
         if($this->tempFile) {
             $this->tempFile->delete();
         }
+
+        $model->ready = true;
+        $model->meta('encoding', false);
+        $model->meta('encoded', true);
+        $model->size = filesize($model->path); //app(MediaService::class)->storage()->disk($model->disk)->size($model->relative_path);
+        $model->save();
     }
 
     public function subject(Model $model)

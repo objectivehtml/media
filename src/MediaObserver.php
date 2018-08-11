@@ -17,25 +17,22 @@ class MediaObserver
         if($model->mime) {
             $model->tag(explode('/', $model->mime)[0]);
         }
+
+        /*
+        if($model->exists && !file_exists($model->path) && $resource = $model->resource()) {
+            $model->disk = app(MediaService::class)->config('temp.disk');
+            $model->ensureDirectoryExists();
+
+            // Put the stream's contents in the model's temp file path where
+            // the file can be processed locally and put back on the server.
+            file_put_contents($model->path, $resource->stream());
+        }
+        */
     }
 
     public function saved(Model $model) {
         if($model->resource() && ($attachTo = $model->resource()->attachTo())) {
             app(MediaService::class)->attachTo($model, $attachTo);
-        }
-
-        if($model->shouldChangeDisk()) {
-            $toDisk = $model->meta->get('move_to') ?: app(MediaService::class)->config('disk');
-
-            MoveModelToDisk::withChain(
-                $model->children()
-                    ->disk($model->disk)
-                    ->ready()
-                    ->get()
-                    ->map(function($child) use ($toDisk) {
-                        return new MoveModelToDisk($child, $toDisk);
-                    })
-            )->dispatch($model, $toDisk);
         }
     }
 
@@ -63,7 +60,7 @@ class MediaObserver
             app(MediaService::class)
                 ->storage()
                 ->disk($model->disk)
-                ->put($model->relative_path, $resource->getResource(), 'public');
+                ->put($model->relative_path, $resource->stream(), 'public');
         }
     }
 

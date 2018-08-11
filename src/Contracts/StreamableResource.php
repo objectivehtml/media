@@ -7,7 +7,7 @@ use Illuminate\Contracts\Filesystem\Factory;
 
 interface StreamableResource {
 
-    public function mime(): string;
+    public function mime(): ?string;
 
     public function extension(): ?string;
 

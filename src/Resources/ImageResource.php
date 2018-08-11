@@ -40,11 +40,6 @@ class ImageResource extends StreamableResource {
         return null;
     }
 
-    public function getResource()
-    {
-        return $this->resource->encode();
-    }
-
     public function stream()
     {
         return $this->resource->encoded();

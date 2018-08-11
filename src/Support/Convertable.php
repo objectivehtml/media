@@ -60,6 +60,7 @@ trait Convertable {
     public function convert(Model $parent, array $arguments = null): Model
     {
         $child = $this->model($arguments);
+        //$child->directory = $parent->directory;
         $child->parent()->associate($parent);
         $child->save();
 

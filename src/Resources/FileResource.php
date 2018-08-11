@@ -39,18 +39,6 @@ class FileResource extends StreamableResource {
         return $this->resource instanceof UploadedFile ? $this->resource->getClientOriginalName() : $this->resource->getFilename();
     }
 
-    public function getResource()
-    {
-        if($this->resource instanceof FakeFile) {
-            return $this->resource->tempFile;
-        }
-        else if($this->resource instanceof File) {
-            return file_get_contents($this->resource->getPathname());
-        }
-
-        return $this->resource;
-    }
-
     public function stream()
     {
         if($this->resource instanceof FakeFile) {
@@ -58,7 +46,7 @@ class FileResource extends StreamableResource {
         }
 
         if(file_exists($path = $this->resource->getPath())) {
-            return file_get_contents($this->resource->getPath());
+            return fopen($path, 'rb');
         }
 
         throw new InvalidResourceException();

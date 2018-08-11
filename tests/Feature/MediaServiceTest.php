@@ -13,6 +13,7 @@ use Objectivehtml\Media\MediaServiceProvider;
 use Objectivehtml\Media\Filters\Image\Crop;
 use Objectivehtml\Media\Facades\Media as Facade;
 use Objectivehtml\Media\Filters\Image\Greyscale;
+use FFMpeg\FFProbe\DataMapping\StreamCollection;
 use Objectivehtml\Media\Conversions\Image\Thumbnail;
 use Objectivehtml\Media\Contracts\Strategy as StrategyInterface;
 
@@ -31,6 +32,40 @@ class MediaServiceTest extends TestCase
         catch(Exception $e) {
             $this->fail($e->getMessage());
         }
+    }
+
+    public function testResourceFromUrl()
+    {
+        $resource = app(MediaService::class)->resource('http://via.placeholder.com/'.($width = 650).'x'.($height = 350));
+
+        $this->assertThat($resource->mime(), $this->equalTo('image/png'));
+        $this->assertThat($resource->extension(), $this->equalTo('png'));
+        $this->assertInternalType('int', $resource->size());
+
+        $model = $resource->save();
+
+        $image = Image::make($model->path);
+
+        $this->assertTrue($model->fileExists);
+        $this->assertTrue($image->width() === $width);
+        $this->assertTrue($image->height() === $height);
+    }
+
+    public function testVideoResourceFromUrl()
+    {
+        $resource = app(MediaService::class)->resource('https://staging.coverr.co/s3/mp4/The-strip.mp4');
+
+        $this->assertThat($resource->mime(), $this->equalTo('video/mp4'));
+        $this->assertThat($resource->extension(), $this->equalTo('mp4'));
+        $this->assertInternalType('int', $resource->size());
+
+        $model = $resource->save();
+
+        $this->assertTrue($model->fileExists);
+
+        $this->assertTrue(
+            app(MediaService::class)->ffprobe()->streams($model->path) instanceof StreamCollection
+        );
     }
 
     public function testSavingResource()
