@@ -12,7 +12,7 @@ use Objectivehtml\Media\Jobs\ApplyFilters;
 use Objectivehtml\Media\Jobs\ApplyConversions;
 use Objectivehtml\Media\Jobs\MoveModelToDisk;
 use Objectivehtml\Media\Jobs\PreserveOriginal;
-use Objectivehtml\Media\Jobs\RemoveModelFromDisk;
+use Objectivehtml\Media\Jobs\RemoveFileFromDisk;
 use Objectivehtml\Media\Jobs\ResizeMaxDimensions;
 use Objectivehtml\Media\Filters\Image\Crop;
 use Objectivehtml\Media\Filters\Image\Greyscale;
@@ -59,7 +59,7 @@ class JobsTest extends TestCase
 
         app(MediaService::class)->storage()->disk($model->disk)->put($model->relative_path, $resource->stream());
 
-        dispatch(new RemoveModelFromDisk($model));
+        dispatch(new RemoveFileFromDisk($model->disk, $model->relative_path));
 
         app(MediaService::class)->storage()->disk($model->disk)->assertMissing($model->relative_path);
     }

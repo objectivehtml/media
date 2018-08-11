@@ -16,18 +16,19 @@ class TemporaryFileTest extends TestCase
     {
         $file = UploadedFile::fake()->image('test.jpg', 10, 10);
 
-        $model = app(MediaService::class)
+        $original = app(MediaService::class)
             ->resource($file)
             ->save();
 
-        $this->assertTrue($model->exists);
+        $this->assertTrue($original->exists);
 
-        $temp = null;
-
-        TemporaryFile::make($model, function($model) use (&$temp) {
+        TemporaryFile::make($original, function($model) use (&$temp) {
             $temp = $model;
+
+            $this->assertNotNull($model->parent);
             $this->assertTrue($model->fileExists);
             $this->assertCount(1, TemporaryModel::query()->temporary()->get());
+            $this->assertThat($model->context, $this->equalTo(app(MediaService::class)->config('temp.context')));
 
             TemporaryFile::make($model, function($model) {
                 $this->assertTrue($model->fileExists);
@@ -41,7 +42,7 @@ class TemporaryFileTest extends TestCase
         });
 
         try {
-            TemporaryFile::make($model, function($temp) {
+            TemporaryFile::make($original, function($temp) {
                 throw new Exception;
             });
         }
@@ -49,7 +50,7 @@ class TemporaryFileTest extends TestCase
             //
         }
 
-        TemporaryFile::make($model, function($temp) {
+        TemporaryFile::make($original, function($temp) {
             $this->assertTrue($temp->fileExists);
             $this->assertCount(1, TemporaryModel::query()->temporary()->get());
         });
