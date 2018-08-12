@@ -47,7 +47,10 @@ class MediaController extends BaseController
      */
     public function index(Request $request)
     {
-        $query = app(MediaService::class)->config('model', Model::class)::parents()->with('children');
+        $query = app(MediaService::class)
+            ->config('model', Model::class)::query()
+            ->parents()
+            ->with('children');
 
         return response()->json($query->where(function($q) use ($request) {
             if($value = $request->title ?: $request->q) {
@@ -73,7 +76,9 @@ class MediaController extends BaseController
      */
     public function store(StoreMediaRequest $request)
     {
-        $file = $request->file(app(MediaService::class)->config('rest.input', 'file'));
+        $file = $request->file(
+            app(MediaService::class)->config('rest.input', 'file')
+        );
 
         $model = app(MediaService::class)
             ->resource($file)

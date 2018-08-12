@@ -18,7 +18,7 @@ class Homepage extends EncodeVideo {
 
         'extension' => 'mp4',
 
-        'height' => 720,
+        'height' => 1080,
 
         'mime' => 'video/mp4',
 
@@ -30,9 +30,9 @@ class Homepage extends EncodeVideo {
 
         'timeout' => 0,
 
-        'videoKbps' => 275,
+        'videoKbps' => 600,
 
-        'width' => 1280
+        'width' => 1920
 
     ];
 
