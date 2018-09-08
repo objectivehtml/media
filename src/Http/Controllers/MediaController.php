@@ -146,7 +146,6 @@ class MediaController extends BaseController
         return response()->json($model->load('children'));
     }
 
-
     /**
      * Unfavorite the specified resource from storage.
      *
@@ -157,6 +156,25 @@ class MediaController extends BaseController
     {
         $model = app(MediaService::class)->config('model', Model::class)::findOrFail($id);
         $model->unfavorite();
+
+        return response()->json($model->load('children'));
+    }
+
+    /**
+     * Re-encode a media resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function encode($id)
+    {
+        $model = app(MediaService::class)->config('model', Model::class)::findOrFail($id);
+
+        if($model->ready) {
+            return abort(400, 'Resource has already been encoded.');
+        }
+
+        $model->encode();
 
         return response()->json($model->load('children'));
     }

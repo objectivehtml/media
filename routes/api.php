@@ -13,4 +13,5 @@ if(app(MediaService::class)->config('rest.endpoint')) {
 
     Route::put(app(MediaService::class)->config('rest.endpoint').'/{id}/favorite', MediaController::class.'@favorite');
     Route::put(app(MediaService::class)->config('rest.endpoint').'/{id}/unfavorite', MediaController::class.'@unfavorite');
+    Route::put(app(MediaService::class)->config('rest.endpoint').'/{id}/encode', MediaController::class.'@encode');
 }

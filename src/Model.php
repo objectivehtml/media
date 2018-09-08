@@ -546,6 +546,58 @@ class Model extends BaseModel
     }
 
     /**
+     * Perform the various encoding
+     *
+     * @return void
+     */
+    public function encode()
+    {
+        if($this->isParent() && $this->fileExists) {
+            $jobs = collect()
+                ->concat(app(MediaService::class)->jobs($this))
+                ->concat(
+                    app(MediaService::class)
+                        ->conversions($this)
+                        ->map(function($conversion) {
+                            return new ApplyConversion($this, $conversion);
+                        })
+                )
+                ->concat(
+                    app(MediaService::class)
+                        ->filters($this)
+                        ->map(function($filter) {
+                            return new ApplyFilter($this, $filter);
+                        })
+                )
+                ->concat([
+                    new MarkAsReady($this),
+                    new FinishProcessingMedia($this)
+                ]);
+
+            StartProcessingMedia::withChain($jobs->all())->dispatch($this);
+        }
+        else if(file_exists($this->path)) {
+            $jobs = collect()
+                ->concat(
+                    $this->conversions->map(function($conversion) {
+                        return new ApplyConversion($this, $conversion);
+                    })
+                )
+                ->concat(
+                    $this->filters->map(function($filter) {
+                        return new ApplyFilter($this, $filter);
+                    })
+                )
+                ->concat([
+                    new MarkAsReady($this),
+                    new FinishProcessingMedia($this)
+                ]);
+
+            StartProcessingMedia::withChain($jobs->all())->dispatch($this);
+        }
+    }
+
+    /**
      * The "booting" method of the model.
      *
      * @return void
@@ -579,49 +631,7 @@ class Model extends BaseModel
                 return;
             }
 
-            if($model->isParent() && $model->fileExists) {
-                $jobs = collect()
-                    ->concat(app(MediaService::class)->jobs($model))
-                    ->concat(
-                        app(MediaService::class)
-                            ->conversions($model)
-                            ->map(function($conversion) use ($model) {
-                                return new ApplyConversion($model, $conversion);
-                            })
-                    )
-                    ->concat(
-                        app(MediaService::class)
-                            ->filters($model)
-                            ->map(function($filter) use ($model) {
-                                return new ApplyFilter($model, $filter);
-                            })
-                    )
-                    ->concat([
-                        new MarkAsReady($model),
-                        new FinishProcessingMedia($model)
-                    ]);
-
-                StartProcessingMedia::withChain($jobs->all())->dispatch($model);
-            }
-            else if(file_exists($model->path)) {
-                $jobs = collect()
-                    ->concat(
-                        $model->filters->map(function($filter) use ($model) {
-                            return new ApplyFilter($model, $filter);
-                        })
-                    )
-                    ->concat(
-                        $model->conversions->map(function($conversion) use ($model) {
-                            return new ApplyConversion($model, $conversion);
-                        })
-                    )
-                    ->concat([
-                        new MarkAsReady($model),
-                        new FinishProcessingMedia($model)
-                    ]);
-
-                StartProcessingMedia::withChain($jobs->all())->dispatch($model);
-            }
+            $model->encode();
         });
 
         /*
