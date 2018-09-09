@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use Media;
 use Storage;
 use Exception;
+use Carbon\Carbon;
 use Tests\TestCase;
 use Illuminate\Http\File;
 use Illuminate\Http\UploadedFile;
@@ -194,6 +195,36 @@ class MediaResourceTest extends TestCase
 
         $this->assertTrue($model->fileExists);
         $this->assertCount(6, $model->children);
+    }
+
+    public function testRetrievingTakenAtFromVideo()
+    {
+        $tags = app(MediaService::class)
+            ->format(__dir__ . '/../src/iphone.m4v')
+            ->get('tags');
+
+        $this->assertTrue(isset($tags['creation_time']));
+        $this->assertInstanceOf(Carbon::class, Carbon::parse($tags['creation_time']));
+    }
+
+    public function testRetrievingTakenAtFromAudio()
+    {
+        $tags = app(MediaService::class)
+            ->format(__dir__ . '/../src/guitar.m4a')
+            ->get('tags');
+
+        $this->assertTrue(isset($tags['creation_time']));
+        $this->assertInstanceOf(Carbon::class, Carbon::parse($tags['creation_time']));
+    }
+
+    public function testRetrievingTakenAtFromImage()
+    {
+        $image = app(MediaService::class)->image(__dir__ . '/../src/image.jpeg');
+
+        $exif = $image->exif();
+
+        $this->assertTrue(isset($exif['DateTimeOriginal']) ?: isset($exif['DateTime']));
+        $this->assertInstanceOf(Carbon::class, Carbon::parse($exif['DateTimeOriginal'] ?: $exif['DateTime']));
     }
 
 }

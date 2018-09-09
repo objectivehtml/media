@@ -2,6 +2,7 @@
 
 namespace Objectivehtml\Media\Plugins;
 
+use Carbon\Carbon;
 use FFMpeg\FFMpeg;
 use Objectivehtml\Media\Model;
 use Objectivehtml\Media\MediaService;
@@ -25,11 +26,21 @@ class VideoPlugin extends Plugin {
                 $model->meta('height', $height = app(MediaService::class)->height($model->path));
                 $model->meta('aspect_ratio', app(MediaService::class)->aspectRatio($width, $height));
             }
+
             if(!$model->meta->get('duration')) {
                 $model->meta('duration', app(MediaService::class)->duration($model->path));
             }
+
             if(!$model->meta->get('bit_rate')) {
                 $model->meta('bit_rate', app(MediaService::class)->bitRate($model->path));
+            }
+
+            if(!$model->meta->get('taken_at')) {
+                $tags = app(MediaService::class)->format($model->path)->get('tags');
+
+                $model->meta('taken_at', (
+                    isset($tags['creation_time']) ? Carbon::parse($tags['creation_time']) : null
+                ));
             }
 
             $model->save();

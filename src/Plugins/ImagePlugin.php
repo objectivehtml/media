@@ -2,6 +2,7 @@
 
 namespace Objectivehtml\Media\Plugins;
 
+use Carbon\Carbon;
 use Objectivehtml\Media\Model;
 use Objectivehtml\Media\MediaService;
 use Objectivehtml\Media\Support\Applyable;
@@ -46,17 +47,32 @@ class ImagePlugin extends Plugin {
             $image = app(MediaService::class)->image($model->path)->orientate();
             $image->save();
 
-            try {
-                if(!$model->exif && $exif = $image->exif()) {
-                    $model->meta('exif', $exif);
+            if(!$model->meta->get('exif')) {
+                try {
+                    $model->meta('exif', $image->exif());
+                }
+                catch(NotReadableException $e) {
+                    // If the file can't be read, then it has no exif data...
+                    $model->meta('exif', null);
                 }
             }
-            catch(NotReadableException $e) {
-                // If the file can't be read, then it has no exif data...
+
+            if(!$model->meta->get('width')) {
+                $model->meta('width', $image->width());
             }
 
-            $model->meta('width', $image->width());
-            $model->meta('height', $image->height());
+            if(!$model->meta->get('height')) {
+                $model->meta('height', $image->height());
+            }
+
+            if(!$model->meta->get('taken_at')) {
+                $takenAt = isset($exif) && (isset($exif['DateTimeOriginal']) || isset($exif['DateTime'])) ? (
+                    Carbon::parse($exif['DateTimeOriginal'] ?: $exif['DateTime'])
+                ) : null;
+
+                $model->meta('taken_at', $takenAt);
+            }
+
             $model->save();
 
             $image->destroy();

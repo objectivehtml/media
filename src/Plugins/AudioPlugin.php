@@ -2,6 +2,7 @@
 
 namespace Objectivehtml\Media\Plugins;
 
+use Carbon\Carbon;
 use FFMpeg\FFMpeg;
 use Objectivehtml\Media\Model;
 use Objectivehtml\Media\MediaService;
@@ -14,6 +15,23 @@ use Objectivehtml\Media\Strategies\JobsConfigClassStrategy;
 class AudioPlugin extends Plugin {
 
     use Applyable, ApplyToAudio;
+
+    public function created(Model $model)
+    {
+        if(!$this->doesApplyToModel($model)) {
+            return;
+        }
+
+        if(!$model->meta->get('taken_at')) {
+            $tags = app(MediaService::class)->format($model->path)->get('tags');
+
+            $model->meta('taken_at', (
+                isset($tags['creation_time']) ? Carbon::parse($tags['creation_time']) : null
+            ));
+
+            $model->save();
+        }
+    }
 
     public function jobs(Model $model): array
     {

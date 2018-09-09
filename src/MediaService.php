@@ -300,7 +300,7 @@ class MediaService implements ConfigableInterface {
      * @param  string $path
      * @return FFMpeg\FFProbe\DataMapping\Format
      */
-    public function format($path)
+    public function format($path): \FFMpeg\FFProbe\DataMapping\Format
     {
         return $this->ffprobe()->format($path);
     }

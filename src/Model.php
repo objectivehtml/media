@@ -296,6 +296,16 @@ class Model extends BaseModel
     }
 
     /**
+     * Get the taken at attribute.
+     *
+     * @param $value
+     */
+    public function getTakenAtAttribute()
+    {
+        return $this->castAttribute('timestamp', $this->meta->get('taken_at'));
+    }
+
+    /**
      * Get the path for the associated file.
      *
      * @param $value
