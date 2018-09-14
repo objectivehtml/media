@@ -98,7 +98,9 @@ class MediaController extends BaseController
      */
     public function show($id)
     {
-        return response()->json(app(MediaService::class)->config('model', Model::class)::findOrFail($id)->load('children'));
+        return response()->json(
+            app(MediaService::class)->config('model', Model::class)::findOrFail($id)->load('children')
+        );
     }
 
     /**

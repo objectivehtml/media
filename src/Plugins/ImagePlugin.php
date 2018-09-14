@@ -66,8 +66,8 @@ class ImagePlugin extends Plugin {
             }
 
             if(!$model->meta->get('taken_at')) {
-                $takenAt = isset($exif) && (isset($exif['DateTimeOriginal']) || isset($exif['DateTime'])) ? (
-                    Carbon::parse($exif['DateTimeOriginal'] ?: $exif['DateTime'])
+                $takenAt = $model->exif->DateTimeOriginal || $model->exif->DateTime ? (
+                    Carbon::parse($model->exif->DateTimeOriginal ?: $model->exif->DateTime)
                 ) : null;
 
                 $model->meta('taken_at', $takenAt);

@@ -2,6 +2,7 @@
 
 namespace Objectivehtml\Media;
 
+use Carbon\Carbon;
 use Objectivehtml\Media\Support\Metable;
 use Objectivehtml\Media\Jobs\StartQueue;
 use Objectivehtml\Media\Jobs\MarkAsReady;
@@ -73,7 +74,7 @@ class Model extends BaseModel
         'filters' => 'array',
         'conversions' => 'array',
         'tags' => 'collection',
-        'meta' => 'collection',
+        'meta' => 'collection'
     ];
 
     /**
@@ -296,13 +297,17 @@ class Model extends BaseModel
     }
 
     /**
-     * Get the taken at attribute.
+     * Get the taken at attribute from the meta data.
      *
-     * @param $value
+     * @return mixed
      */
-    public function getTakenAtAttribute()
+    public function getTakenAtAttribute(): ?Carbon
     {
-        return $this->castAttribute('timestamp', $this->meta->get('taken_at'));
+        if(is_array($takenAt = $this->meta->get('taken_at'))) {
+            return new Carbon($takenAt['date'], $takenAt['timezone']);
+        }
+
+        return null;
     }
 
     /**

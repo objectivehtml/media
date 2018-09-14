@@ -301,6 +301,8 @@ return [
 
         'api_key' => env('GOOGLE_MAPS_API_KEY'),
 
+        'sync_request_key' => 'sync_geocoder',
+
         'providers' => [
             Chain::class => [
                 GoogleMaps::class => [

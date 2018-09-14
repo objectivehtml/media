@@ -27,7 +27,12 @@ class GeocoderPlugin extends Plugin {
             return;
         }
 
-        GeocodeModel::dispatch($model);
+        if(request()->input(app(MediaService::class)->config('geocoder.sync_request_key', 'sync_geocoder'))) {
+            GeocodeModel::dispatchNow($model);
+        }
+        else {
+            GeocodeModel::dispatch($model);
+        }
     }
 
 }

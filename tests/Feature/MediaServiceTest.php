@@ -25,7 +25,7 @@ class MediaServiceTest extends TestCase
         $file = UploadedFile::fake()->image('test.jpg', 10, 10);
 
         $resource = app(MediaService::class)->resource($file);
-
+        
         try {
             $this->assertInstanceOf(\Intervention\Image\Image::class, Image::make($resource->stream()));
         }
@@ -54,6 +54,23 @@ class MediaServiceTest extends TestCase
     public function testVideoResourceFromUrl()
     {
         $resource = app(MediaService::class)->resource('https://staging.coverr.co/s3/mp4/The-strip.mp4');
+
+        $this->assertThat($resource->mime(), $this->equalTo('video/mp4'));
+        $this->assertThat($resource->extension(), $this->equalTo('mp4'));
+        $this->assertInternalType('int', $resource->size());
+
+        $model = $resource->save();
+
+        $this->assertTrue($model->fileExists);
+
+        $this->assertTrue(
+            app(MediaService::class)->ffprobe()->streams($model->path) instanceof StreamCollection
+        );
+    }
+
+    public function testGettingCreatedDaeFromVideo()
+    {
+        $resource = app(MediaService::class)->resource();
 
         $this->assertThat($resource->mime(), $this->equalTo('video/mp4'));
         $this->assertThat($resource->extension(), $this->equalTo('mp4'));

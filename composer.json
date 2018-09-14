@@ -21,7 +21,8 @@
         "ralouphie/mimey": "^2.0",
         "php-http/guzzle6-adapter": "^1.1",
         "geocoder-php/google-maps-provider": "^4.2",
-        "php-http/message": "^1.6"
+        "php-http/message": "^1.6",
+        "php-http/curl-client": "^1.7"
     },
     "require-dev": {
         "orchestra/testbench": "~3.6",

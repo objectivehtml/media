@@ -72,6 +72,19 @@ class Geocoder {
         });
     }
 
+    /*
+    public function nearbyPlaces(float $latitude, float $longitude): AddressCollection
+    {
+        $cacheKey = str_slug(strtolower(urlencode("nearby-{$latitude}-{$longitude}")));
+
+        return $this->cache($cacheKey, function() use ($latitude, $longitude) {
+            return $this->geocoder()->reverseQuery(
+                ReverseQuery::fromCoordinates($latitude, $longitude)
+            );
+        });
+    }
+    */
+
     public function cache($key, Closure $callback): AddressCollection
     {
         $hashedKey = sha1($key);
