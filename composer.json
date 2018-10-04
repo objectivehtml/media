@@ -15,7 +15,6 @@
         "fzaninotto/faker": "^1.8",
         "intervention/image": "^2.4",
         "intervention/imagecache": "^2.3",
-        "php-ffmpeg/binary-driver": "dev-master",
         "php-ffmpeg/php-ffmpeg": "^0.11.1",
         "league/color-extractor": "0.3.*",
         "ralouphie/mimey": "^2.0",
@@ -55,5 +54,8 @@
                 "Media": "\\Objectivehtml\\Media\\Facades\\Media"
             }
         }
+    },
+    "suggest": {
+        "php-ffmpeg/binary-driver:dev-master": "The FFMpeg binary package. Must be required with using a \"vcs\" repository with the url \"https://github.com/PHP-FFMpeg/BinaryDriver.git\""
     }
 }
