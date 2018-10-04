@@ -4,7 +4,7 @@ namespace Objectivehtml\Media\Policies;
 
 use Objectivehtml\Media\Model;
 use Illuminate\Auth\Access\HandlesAuthorization;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Contracts\Auth\Authenticatable as Authenticatable;
 
 class MediaPolicy
 {
