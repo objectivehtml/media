@@ -2,7 +2,6 @@
 
 namespace Objectivehtml\Media;
 
-use Objectivehtml\Media\Jobs\MoveModelToDisk;
 use Objectivehtml\Media\Jobs\RemoveFileFromDisk;
 
 class MediaObserver

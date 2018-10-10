@@ -13,7 +13,6 @@ use Objectivehtml\Media\Support\QueryScopes;
 use Objectivehtml\Media\Jobs\GenerateImages;
 use Objectivehtml\Media\Events\FavoritedMedia;
 use Objectivehtml\Media\Jobs\ApplyConversion;
-use Objectivehtml\Media\Jobs\MoveModelToDisk;
 use Objectivehtml\Media\Jobs\ApplyConversions;
 use Objectivehtml\Media\Events\UnfavoritedMedia;
 use Objectivehtml\Media\Conversions\Conversions;
@@ -648,24 +647,6 @@ class Model extends BaseModel
 
             $model->encode();
         });
-
-        /*
-        static::saved(function(Model $model) {
-            if($model->shouldChangeDisk()) {
-                $toDisk = $model->meta->get('move_to') ?: app(MediaService::class)->config('disk');
-
-                MoveModelToDisk::withChain(
-                    $model->children()
-                        ->disk($model->disk)
-                        ->ready()
-                        ->get()
-                        ->map(function($child) use ($toDisk) {
-                            return new MoveModelToDisk($child, $toDisk);
-                        })
-                )->dispatch($model, $toDisk);
-            }
-        });
-        */
     }
 
 }
