@@ -57,6 +57,18 @@ trait QueryScopes {
      * Add a query scope for the conversions attribute
      *
      * @param Illuminate\Database\Eloquent\Builder $query
+     * @param mixed $conversions
+     * @return void
+     */
+    public function scopeWithoutConversion($query, ...$conversions)
+    {
+        $this->scopeWithoutConversions($query, $conversions);
+    }
+
+    /**
+     * Add a query scope for the conversions attribute
+     *
+     * @param Illuminate\Database\Eloquent\Builder $query
      * @param array $conversions
      * @return void
      */
@@ -65,6 +77,22 @@ trait QueryScopes {
         $query->where(function($q) use ($conversions) {
             foreach($conversions as $conversion) {
                 $q->orWhereJsonContains('conversions', $conversion);
+            }
+        });
+    }
+
+    /**
+     * Add a query scope for the conversions attribute
+     *
+     * @param Illuminate\Database\Eloquent\Builder $query
+     * @param array $conversions
+     * @return void
+     */
+    public function scopeWithoutConversions($query, array $conversions)
+    {
+        $query->where(function($q) use ($conversions) {
+            foreach($conversions as $conversion) {
+                $q->orWhereJsonDoesntContain('conversions', $conversion);
             }
         });
     }
@@ -121,6 +149,18 @@ trait QueryScopes {
      * Add a query scope for the filters attribute
      *
      * @param Illuminate\Database\Eloquent\Builder $query
+     * @param mixed $filters
+     * @return void
+     */
+    public function scopeWithoutFilter($query, ...$filters)
+    {
+        $this->scopeWithoutFilters($query, $filters);
+    }
+
+    /**
+     * Add a query scope for the filters attribute
+     *
+     * @param Illuminate\Database\Eloquent\Builder $query
      * @param array $filters
      * @return void
      */
@@ -129,6 +169,22 @@ trait QueryScopes {
         $query->where(function($q) use ($filters) {
             foreach($filters as $filter) {
                 $q->orWhereJsonContains('filter', $filter);
+            }
+        });
+    }
+
+    /**
+     * Add a query scope for the filters attribute
+     *
+     * @param Illuminate\Database\Eloquent\Builder $query
+     * @param array $filters
+     * @return void
+     */
+    public function scopeWithoutFilters($query, array $filters)
+    {
+        $query->where(function($q) use ($filters) {
+            foreach($filters as $filter) {
+                $q->orWhereJsonDoesntContain('filter', $filter);
             }
         });
     }
