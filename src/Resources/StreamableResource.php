@@ -26,7 +26,6 @@ abstract class StreamableResource implements StreamableResourceInterface, Conver
     public function __construct($resource)
     {
         $this->resource = $resource;
-        $this->options = collect($this->options);
     }
 
     public function __call($key, $args)
