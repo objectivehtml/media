@@ -242,6 +242,18 @@ trait QueryScopes {
      * Add a query scope for the tags attribute
      *
      * @param Illuminate\Database\Eloquent\Builder $query
+     * @param mixed ...$tags
+     * @return void
+     */
+    public function scopeWithoutTag($query, ...$tags)
+    {
+        $this->scopeWithoutTags($query, $tags);
+    }
+
+    /**
+     * Add a query scope for the tags attribute
+     *
+     * @param Illuminate\Database\Eloquent\Builder $query
      * @param array $tags
      * @return void
      */
@@ -250,6 +262,22 @@ trait QueryScopes {
         $query->where(function($q) use ($tags) {
             foreach($tags as $tag) {
                 $q->orWhereJsonContains('tags', $tag);
+            }
+        });
+    }
+
+    /**
+     * Add a query scope for the tags attribute
+     *
+     * @param Illuminate\Database\Eloquent\Builder $query
+     * @param array $tags
+     * @return void
+     */
+    public function scopeWithoutTags($query, array $tags)
+    {
+        $query->where(function($q) use ($tags) {
+            foreach($tags as $tag) {
+                $q->orWhereJsonDoesntContain('tags', $tag);
             }
         });
     }
