@@ -26,9 +26,12 @@ class ResizeMaxDimensions extends Conversion implements ConversionInterface {
     public function apply(Model $model)
     {
         $image = app(MediaService::class)->image($model->path);
-        $image->fit($this->width, $this->height);
-        $image->save($model->path);
-        $image->destroy();
+
+        if($image->width() >= $this->width || $image->height() >= $this->height) {
+            $image->fit($this->width, $this->height);
+            $image->save($model->path);
+            $image->destroy();
+        }
     }
 
 }
