@@ -21,10 +21,6 @@ abstract class StreamableResource implements StreamableResourceInterface, Conver
 
     use Convertable, Filterable, Metable, Taggable;
 
-    protected $options = [
-        'preserveOriginal' => true
-    ];
-
     protected $directoryStrategy;
 
     public function __construct($resource)
@@ -36,12 +32,10 @@ abstract class StreamableResource implements StreamableResourceInterface, Conver
     public function __call($key, $args)
     {
         if(isset($args[0])) {
-            $this->options->put($key, $args[0]);
-
-            return $this;
+            return $this->meta($key, $args[0]);
         }
 
-        return $this->options->get($key);
+        return $this->meta($key);
     }
 
     public function directoryStrategy($strategy = null)

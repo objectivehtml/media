@@ -14,7 +14,9 @@ class PreserveOriginal extends Conversion implements ConversionInterface {
 
     public function apply(Model $model)
     {
-        app(MediaService::class)->preserveOriginal($model);
+        if($model->meta->get('preserveOriginal') !== false) {
+            app(MediaService::class)->preserveOriginal($model);
+        }
     }
 
 }
