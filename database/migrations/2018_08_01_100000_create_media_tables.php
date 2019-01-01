@@ -32,6 +32,7 @@ class CreateMediaTables extends Migration
             $table->json('meta')->nullable();
             $table->json('tags')->nullable();
             $table->unsignedInteger('order')->nullable();
+            $table->timestamp('taken_at')->nullable();
             $table->timestamps();
         });
 

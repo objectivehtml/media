@@ -50,7 +50,7 @@ class Model extends BaseModel
     protected $fillable = [
         'ready', 'favorite', 'disk', 'context', 'title', 'caption', 'directory',
         'filename', 'orig_filename', 'mime', 'extension', 'size','disk',
-        'filters', 'conversions', 'meta', 'tags', 'order'
+        'filters', 'conversions', 'meta', 'tags', 'order', 'taken_at'
     ];
 
     /**
@@ -94,6 +94,15 @@ class Model extends BaseModel
      */
     protected $attributes = [
         'size' => 0
+    ];
+
+    /**
+     * The date attributes.
+     *
+     * @var array
+     */
+    protected $dates = [
+        'taken_at'
     ];
 
     /**
@@ -300,14 +309,27 @@ class Model extends BaseModel
      *
      * @return mixed
      */
+
+    /*
     public function getTakenAtAttribute(): ?Carbon
     {
-        if(is_array($takenAt = $this->meta->get('taken_at'))) {
-            return new Carbon($takenAt['date'], $takenAt['timezone']);
+        if($takenAt = $this->meta->get('taken_at')) {
+            if(is_array($takenAt)) {
+                return new Carbon($takenAt['date'], $takenAt['timezone']);
+            }
+            else if(is_string($takenAt)) {
+                return Carbon::parse($takenAt);
+            }
+        }
+        else if(isset($this->attributes['taken_at'])) {
+            dd($this->attributes);
+
+            return $this->toDate($this->attributes['taken_at']);
         }
 
-        return null;
+        return $this->created_at;
     }
+    */
 
     /**
      * Get the path for the associated file.

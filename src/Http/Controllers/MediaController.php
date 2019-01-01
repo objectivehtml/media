@@ -52,6 +52,10 @@ class MediaController extends BaseController
             ->parents()
             ->with(app(MediaService::class)->config('rest.with', 'children'));
 
+        if(request()->order) {
+            $query->orderBy(request()->order ?: 'taken_at', request()->sort ?: 'desc');
+        }
+
         return response()->json($query->where(function($q) use ($request) {
             if($value = $request->title ?: $request->q) {
                 $q->orWhere('title', 'LIKE', '%'.$value.'%');
@@ -65,7 +69,7 @@ class MediaController extends BaseController
             if($value = $request->context ?: $request->q) {
                 $q->orWhere('context', $value);
             }
-        })->paginate());
+        })->paginate(request()->limit ?: 20));
     }
 
     /**

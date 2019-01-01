@@ -65,13 +65,11 @@ class ImagePlugin extends Plugin {
                 $model->meta('height', $image->height());
             }
 
-            if(!$model->meta->get('taken_at')) {
-                $model->meta('taken_at', (
-                    $model->exif && $model->exif->DateTimeOriginal ||
-                    $model->exif && $model->exif->DateTime
-                ));
+            if(!$model->meta->get('taken_at') && $model->exif) {
+                $model->taken_at = $model->exif->DateTimeOriginal ?: $model->exif->DateTime;
+                $model->meta('taken_at', $model->taken_at);
             }
-
+            
             $model->save();
 
             $image->destroy();

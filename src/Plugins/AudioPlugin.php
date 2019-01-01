@@ -25,10 +25,7 @@ class AudioPlugin extends Plugin {
         if(!$model->meta->get('taken_at')) {
             $tags = app(MediaService::class)->format($model->path)->get('tags');
 
-            $model->meta('taken_at', (
-                isset($tags['creation_time']) ? Carbon::parse($tags['creation_time']) : null
-            ));
-
+            $model->meta('taken_at', isset($tags['creation_time']) ? Carbon::parse($tags['creation_time']) : null);
             $model->save();
         }
     }
