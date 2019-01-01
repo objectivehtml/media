@@ -127,7 +127,7 @@ return [
     'rest' => [
 
         // The relationships to eargerly load in the HTTP requests.
-        'with' => 'children'
+        'with' => 'children',
 
         // The request input key to for file uploads in the rest controller.
         'input' => 'file',
