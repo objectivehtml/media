@@ -183,8 +183,7 @@ trait Mediable {
                                     $relationName = null, $inverse = false)
     {
 
-        $query = app(MediaService::class)
-            ->config('model', Model::class)::query();
+        $query = app(MediaService::class)->config('model', Model::class)::query();
 
         return new MorphOneThrough($query, $this, $name, $table,
                                    $foreignPivotKey, $relatedPivotKey, $parentKey,

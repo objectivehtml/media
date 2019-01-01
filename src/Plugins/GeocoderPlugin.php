@@ -3,6 +3,7 @@
 namespace Objectivehtml\Media\Plugins;
 
 use Objectivehtml\Media\Model;
+use Objectivehtml\Media\MediaService;
 use Objectivehtml\Media\Jobs\GeocodeModel;
 use Objectivehtml\Media\Support\Applyable;
 use Objectivehtml\Media\Support\ApplyToImages;

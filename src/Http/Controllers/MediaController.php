@@ -50,7 +50,7 @@ class MediaController extends BaseController
         $query = app(MediaService::class)
             ->config('model', Model::class)::query()
             ->parents()
-            ->with('children');
+            ->with(app(MediaService::class)->config('rest.with', 'children'));
 
         return response()->json($query->where(function($q) use ($request) {
             if($value = $request->title ?: $request->q) {
@@ -87,7 +87,7 @@ class MediaController extends BaseController
         $model->fill($request->only(['context', 'title', 'caption', 'meta']));
         $model->save();
 
-        return response()->json($model->load('children'));
+        return response()->json($model->load(app(MediaService::class)->config('rest.with', 'children')));
     }
 
     /**
@@ -99,7 +99,8 @@ class MediaController extends BaseController
     public function show($id)
     {
         return response()->json(
-            app(MediaService::class)->config('model', Model::class)::findOrFail($id)->load('children')
+            app(MediaService::class)->config('model', Model::class)::findOrFail($id)
+                ->load(app(MediaService::class)->config('rest.with', 'children'))
         );
     }
 
@@ -116,7 +117,9 @@ class MediaController extends BaseController
         $model->fill($request->all());
         $model->save();
 
-        return response()->json($model->load('children'));
+        return response()->json(
+            $model->load(app(MediaService::class)->config('rest.with', 'children'))
+        );
     }
 
     /**
@@ -128,7 +131,7 @@ class MediaController extends BaseController
     public function destroy($id)
     {
         $model = app(MediaService::class)->config('model', Model::class)::findOrFail($id);
-        $model->load('children');
+        $model->load(app(MediaService::class)->config('rest.with', 'children'));
         $model->delete();
 
         return response()->json($model);
@@ -145,7 +148,7 @@ class MediaController extends BaseController
         $model = app(MediaService::class)->config('model', Model::class)::findOrFail($id);
         $model->favorite();
 
-        return response()->json($model->load('children'));
+        return response()->json($model->load(app(MediaService::class)->config('rest.with', 'children')));
     }
 
     /**
@@ -159,7 +162,7 @@ class MediaController extends BaseController
         $model = app(MediaService::class)->config('model', Model::class)::findOrFail($id);
         $model->unfavorite();
 
-        return response()->json($model->load('children'));
+        return response()->json($model->load(app(MediaService::class)->config('rest.with', 'children')));
     }
 
     /**
@@ -178,7 +181,7 @@ class MediaController extends BaseController
 
         $model->encode();
 
-        return response()->json($model->load('children'));
+        return response()->json($model->load(app(MediaService::class)->config('rest.with', 'children')));
     }
 
 
