@@ -4,6 +4,10 @@ namespace Objectivehtml\Media;
 
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Objectivehtml\Media\Plugins\ImagePlugin;
+use Objectivehtml\Media\Plugins\VideoPlugin;
+use Objectivehtml\Media\Services\ImageService;
+use Objectivehtml\Media\Services\MediaService;
 use Intervention\Image\ImageManagerStatic as Image;
 
 
@@ -23,6 +27,18 @@ class MediaServiceProvider extends ServiceProvider
         $this->app->singleton(MediaService::class, function($app) {
             return new MediaService($app->filesystem, $app['config']['media']);
         });
+
+        if(app(MediaService::class)->isPluginInstalled(ImagePlugin::class)) {
+            $this->app->singleton(ImageService::class, function($app) {
+                return new ImageService($app->filesystem, $app['config']['media']);
+            });
+        }
+
+        if(app(MediaService::class)->isPluginInstalled(VideoPlugin::class)) {
+            $this->app->singleton(VideoService::class, function($app) {
+                return new VideoService($app->filesystem, $app['config']['media']);
+            });
+        }
     }
 
     /**

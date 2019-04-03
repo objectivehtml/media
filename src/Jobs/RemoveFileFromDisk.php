@@ -4,7 +4,7 @@ namespace Objectivehtml\Media\Jobs;
 
 use Illuminate\Bus\Queueable;
 use Objectivehtml\Media\Model;
-use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Services\MediaService;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;

@@ -2,6 +2,8 @@
 
 namespace Objectivehtml\Media;
 
+use Objectivehtml\Media\Services\MediaService;
+
 class TemporaryModel extends Model
 {
 

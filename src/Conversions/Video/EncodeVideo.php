@@ -6,7 +6,7 @@ use FFMpeg\Media\Video;
 use FFMpeg\Format\Video\X264;
 use Objectivehtml\Media\Model;
 use FFMpeg\Coordinate\Dimension;
-use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Services\MediaService;
 use Objectivehtml\Media\TemporaryFile;
 use Objectivehtml\Media\Support\ApplyToVideos;
 use Objectivehtml\Media\Conversions\Conversion;

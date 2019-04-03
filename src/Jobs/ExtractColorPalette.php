@@ -6,12 +6,12 @@ use Illuminate\Bus\Queueable;
 use Objectivehtml\Media\Model;
 use League\ColorExtractor\Color;
 use League\ColorExtractor\Palette;
-use Objectivehtml\Media\MediaService;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use League\ColorExtractor\ColorExtractor;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Objectivehtml\Media\Services\ImageService;
 use Objectivehtml\Media\Events\ExtractedColorPalette;
 
 class ExtractColorPalette implements ShouldQueue
@@ -40,11 +40,11 @@ class ExtractColorPalette implements ShouldQueue
      */
     public function handle()
     {
-        $image = app(MediaService::class)->image($this->model->path);
+        $image = app(ImageService::class)->make($this->model->path);
 
         $image->fit(
-            min($this->model->width, app(MediaService::class)->config('image.colors.max_width', 600)),
-            min($this->model->height, app(MediaService::class)->config('image.colors.max_height', 600))
+            min($this->model->width, app(ImageService::class)->config('image.colors.max_width', 600)),
+            min($this->model->height, app(ImageService::class)->config('image.colors.max_height', 600))
         );
 
         // Create a Palette instance from the model url

@@ -2,13 +2,13 @@
 
 namespace Objectivehtml\Media\Plugins;
 
+use Exception;
 use Carbon\Carbon;
-use FFMpeg\FFMpeg;
 use Objectivehtml\Media\Model;
-use Objectivehtml\Media\MediaService;
 use Objectivehtml\Media\Support\Applyable;
 use Objectivehtml\Media\Support\ApplyToAudio;
-use FFMpeg\Exception\ExecutableNotFoundException;
+use Objectivehtml\Media\Services\MediaService;
+use Objectivehtml\Media\Services\VideoService;
 use Objectivehtml\Media\Strategies\ConfigClassStrategy;
 use Objectivehtml\Media\Strategies\JobsConfigClassStrategy;
 
@@ -23,7 +23,7 @@ class AudioPlugin extends Plugin {
         }
 
         if(!$model->meta->get('taken_at')) {
-            $tags = app(MediaService::class)->format($model->path)->get('tags');
+            $tags = app(VideoService::class)->format($model->path)->get('tags');
 
             $model->meta('taken_at', isset($tags['creation_time']) ? Carbon::parse($tags['creation_time']) : null);
             $model->save();
@@ -47,14 +47,18 @@ class AudioPlugin extends Plugin {
 
     public function doesMeetRequirements(): bool
     {
-        try {
-            $ffmpeg = FFMpeg::create(app(MediaService::class)->config('ffmpeg'));
-        }
-        catch(ExecutableNotFoundException $e) {
-            return false;
+        if(class_exists('FFMpeg\FFMpeg')) {
+            try {
+                $ffmpeg = \FFMpeg\FFMpeg::create(app(MediaService::class)->config('ffmpeg'));
+            }
+            catch(Exception $e) {
+                return false;
+            }
+    
+            return true;
         }
 
-        return true;
+        return false;
     }
 
 }

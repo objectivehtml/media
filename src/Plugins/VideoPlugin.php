@@ -2,13 +2,12 @@
 
 namespace Objectivehtml\Media\Plugins;
 
+use Exception;
 use Carbon\Carbon;
-use FFMpeg\FFMpeg;
 use Objectivehtml\Media\Model;
-use Objectivehtml\Media\MediaService;
 use Objectivehtml\Media\Support\Applyable;
 use Objectivehtml\Media\Support\ApplyToVideos;
-use FFMpeg\Exception\ExecutableNotFoundException;
+use Objectivehtml\Media\Services\VideoService;
 use Objectivehtml\Media\Conversions\Video\EncodeVideo;
 use Objectivehtml\Media\Conversions\Video\ExtractFrames;
 use Objectivehtml\Media\Strategies\ConfigClassStrategy;
@@ -22,21 +21,21 @@ class VideoPlugin extends Plugin {
     {
         if($this->doesApplyToModel($model) && $model->fileExists) {
             if(!$model->meta->get('width') && !$model->meta->get('height')) {
-                $model->meta('width', $width = app(MediaService::class)->width($model->path));
-                $model->meta('height', $height = app(MediaService::class)->height($model->path));
-                $model->meta('aspect_ratio', app(MediaService::class)->aspectRatio($width, $height));
+                $model->meta('width', $width = app(VideoService::class)->width($model->path));
+                $model->meta('height', $height = app(VideoService::class)->height($model->path));
+                $model->meta('aspect_ratio', app(VideoService::class)->aspectRatio($width, $height));
             }
 
             if(!$model->meta->get('duration')) {
-                $model->meta('duration', app(MediaService::class)->duration($model->path));
+                $model->meta('duration', app(VideoService::class)->duration($model->path));
             }
 
             if(!$model->meta->get('bit_rate')) {
-                $model->meta('bit_rate', app(MediaService::class)->bitRate($model->path));
+                $model->meta('bit_rate', app(VideoService::class)->bitRate($model->path));
             }
 
             if(!$model->meta->get('taken_at')) {
-                $tags = app(MediaService::class)->format($model->path)->get('tags');
+                $tags = app(VideoService::class)->format($model->path)->get('tags');
 
                 $model->meta('taken_at', (
                     isset($tags['creation_time']) ? Carbon::parse($tags['creation_time']) : null
@@ -45,15 +44,15 @@ class VideoPlugin extends Plugin {
 
             $model->save();
 
-            if(app(MediaService::class)->config('video.sync_extract_first_frame') && $model->isParent()) {
-                app(MediaService::class)->extractFrame($model);
+            if(app(VideoService::class)->config('video.sync_extract_first_frame') && $model->isParent()) {
+                app(VideoService::class)->extractFrame($model);
             }
         }
     }
 
     public function resolutions(Model $model): array
     {
-        $resolutions = collect(app(MediaService::class)->config('video.resolutions', []))
+        $resolutions = collect(app(VideoService::class)->config('video.resolutions', []))
             ->filter(function($resolution) use ($model) {
                 return $resolution['width'] < $model->meta->get('width') &&
                        $resolution['height'] < $model->meta->get('height');
@@ -69,7 +68,7 @@ class VideoPlugin extends Plugin {
     {
         return array_map(
             JobsConfigClassStrategy::make($model),
-            app(MediaService::class)->config('video.jobs', [])
+            app(VideoService::class)->config('video.jobs', [])
         );
     }
 
@@ -77,7 +76,7 @@ class VideoPlugin extends Plugin {
     {
         return array_map(
             ConfigClassStrategy::make(),
-            app(MediaService::class)->config('video.filters', [])
+            app(VideoService::class)->config('video.filters', [])
         );
     }
 
@@ -85,7 +84,7 @@ class VideoPlugin extends Plugin {
     {
         $conversions = array_map(
             ConfigClassStrategy::make(),
-            app(MediaService::class)->config('video.conversions', [])
+            app(VideoService::class)->config('video.conversions', [])
         );
 
         return collect($conversions)
@@ -110,14 +109,18 @@ class VideoPlugin extends Plugin {
 
     public function doesMeetRequirements(): bool
     {
-        try {
-            $ffmpeg = FFMpeg::create(app(MediaService::class)->config('ffmpeg'));
-        }
-        catch(ExecutableNotFoundException $e) {
-            return false;
+        if(class_exists('FFMpeg\FFMpeg')) {
+            try {
+                $ffmpeg = \FFMpeg\FFMpeg::create(app(VideoService::class)->config('ffmpeg'));
+            }
+            catch(Exception $e) {
+                return false;
+            }
+
+            return true;
         }
 
-        return true;
+        return false;
     }
 
 }

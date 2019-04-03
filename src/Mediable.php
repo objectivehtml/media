@@ -7,6 +7,7 @@ use Objectivehtml\Media\Model;
 use Illuminate\Support\Collection;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\Request;
+use Objectivehtml\Media\Services\MediaService;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Objectivehtml\Media\Exceptions\InvalidResourceException;
 use Objectivehtml\Media\Contracts\StreamableResource as StreamableResourceInterface;

@@ -5,7 +5,7 @@ namespace Objectivehtml\Media\Http\Controllers;
 use Illuminate\Http\Request;
 use Objectivehtml\Media\Model;
 use Illuminate\Support\Collection;
-use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Services\MediaService;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;

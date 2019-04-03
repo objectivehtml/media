@@ -10,7 +10,7 @@ use Tests\TestCase;
 use Illuminate\Http\File;
 use Illuminate\Http\UploadedFile;
 use Objectivehtml\Media\Model;
-use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Services\MediaService;
 use Objectivehtml\Media\Filters\Image\Crop;
 use Objectivehtml\Media\Filters\Image\Greyscale;
 use Objectivehtml\Media\Conversions\Audio\Waveform;

@@ -2,7 +2,7 @@
 
 namespace Objectivehtml\Media\Support;
 
-use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Services\MediaService;
 
 trait ApplyToVideos {
 

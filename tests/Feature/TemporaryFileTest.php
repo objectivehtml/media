@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use Exception;
 use Tests\TestCase;
 use Illuminate\Http\UploadedFile;
-use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Services\MediaService;
 use Objectivehtml\Media\TemporaryFile;
 use Objectivehtml\Media\TemporaryModel;
 

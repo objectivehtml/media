@@ -3,7 +3,7 @@
 namespace Objectivehtml\Media\Conversions\Image;
 
 use Objectivehtml\Media\Model;
-use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Services\MediaService;
 use Intervention\Image\ImageManagerStatic as Image;
 use Objectivehtml\Media\Filters\Image\Fit;
 use Objectivehtml\Media\Support\ApplyToImages;
@@ -34,7 +34,7 @@ class Thumbnail extends Conversion implements ConversionInterface {
         app(MediaService::class)
             ->resource($model->path)
             ->filters([
-                new Fit(100, 100)
+                new Fit($this->width, $this->height)
             ])
             ->context('thumbnail')
             ->convert($model, [

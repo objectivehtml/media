@@ -3,7 +3,7 @@
 namespace Objectivehtml\Media\Http\Requests;
 
 use Objectivehtml\Media\Model;
-use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Services\MediaService;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateMediaRequest extends ApiFormRequest

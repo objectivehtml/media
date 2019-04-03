@@ -3,7 +3,7 @@
 namespace Objectivehtml\Media\Facades;
 
 use Illuminate\Support\Facades\Facade;
-use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Services\MediaService;
 
 class Media extends Facade
 {

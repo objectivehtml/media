@@ -1,6 +1,6 @@
 <?php
 
-use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Services\MediaService;
 use Objectivehtml\Media\Http\Controllers\MediaController;
 
 // Load some api routes...

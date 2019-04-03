@@ -4,7 +4,7 @@ namespace Objectivehtml\Media\Resources;
 
 use InvalidArgumentException;
 use Objectivehtml\Media\Model;
-use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Services\MediaService;
 use Illuminate\Contracts\Filesystem\Factory;
 use Symfony\Component\HttpFoundation\File\File;
 use Objectivehtml\Media\Support\Metable;

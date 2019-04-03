@@ -6,7 +6,7 @@ use Media;
 use Tests\TestCase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
-use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Services\MediaService;
 use Illuminate\Contracts\Filesystem\Factory;
 use Intervention\Image\ImageManagerStatic as Image;
 use Objectivehtml\Media\MediaServiceProvider;

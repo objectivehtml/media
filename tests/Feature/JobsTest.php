@@ -4,9 +4,9 @@ namespace Tests\Feature;
 
 use PDOException;
 use Tests\TestCase;
-use Illuminate\Http\UploadedFile;
 use Objectivehtml\Media\Model;
-use Objectivehtml\Media\MediaService;
+use Illuminate\Http\UploadedFile;
+use Objectivehtml\Media\Services\MediaService;
 use Intervention\Image\ImageManagerStatic as Image;
 use Objectivehtml\Media\Jobs\ApplyFilters;
 use Objectivehtml\Media\Jobs\ApplyConversions;

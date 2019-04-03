@@ -3,7 +3,7 @@
 namespace Objectivehtml\Media\Conversions;
 
 use Objectivehtml\Media\Model;
-use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Services\MediaService;
 use Objectivehtml\Media\Filters\Image\Fit;
 use Objectivehtml\Media\Support\ApplyToPlugins;
 use Objectivehtml\Media\Contracts\Conversion as ConversionInterface;

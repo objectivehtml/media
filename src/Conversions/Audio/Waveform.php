@@ -3,7 +3,8 @@
 namespace Objectivehtml\Media\Conversions\Audio;
 
 use Objectivehtml\Media\Model;
-use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Services\MediaService;
+use Objectivehtml\Media\Services\VideoService;
 use Objectivehtml\Media\Conversions\Conversion;
 use Intervention\Image\ImageManagerStatic as Image;
 use Objectivehtml\Media\Contracts\StreamableResource;;
@@ -31,7 +32,7 @@ class Waveform extends Conversion implements ConversionInterface {
 
     public function apply(Model $model)
     {
-        $audio = app(MediaService::class)->ffmpeg()->open($model->path);
+        $audio = app(VideoService::class)->ffmpeg()->open($model->path);
 
         $child = app(MediaService::class)->model([
             'context' => 'waveform',

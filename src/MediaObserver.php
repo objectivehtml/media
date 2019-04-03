@@ -2,6 +2,7 @@
 
 namespace Objectivehtml\Media;
 
+use Objectivehtml\Media\Services\MediaService;
 use Objectivehtml\Media\Jobs\RemoveFileFromDisk;
 
 class MediaObserver

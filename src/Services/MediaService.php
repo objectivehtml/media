@@ -1,69 +1,33 @@
 <?php
 
-namespace Objectivehtml\Media;
+namespace Objectivehtml\Media\Services;
 
-use FFMpeg\FFMpeg;
-use FFMpeg\FFProbe;
-use FFMpeg\Media\Video;
 use Illuminate\Http\Request;
-use Intervention\Image\Image;
 use Objectivehtml\Media\Model;
-use FFMpeg\Coordinate\TimeCode;
-use FFMpeg\Format\VideoInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\Support\Jsonable;
 use Illuminate\Contracts\Support\Arrayable;
-use Objectivehtml\Media\Support\Configable;
 use Illuminate\Contracts\Filesystem\Factory;
 use Symfony\Component\HttpFoundation\File\File;
 use Objectivehtml\Media\Resources\FileResource;
 use Objectivehtml\Media\Resources\ImageResource;
-use FFMpeg\FFProbe\DataMapping\StreamCollection;
-use Intervention\Image\ImageManagerStatic as Img;
 use Objectivehtml\Media\Resources\RemoteResource;
 use Objectivehtml\Media\Contracts\StreamableResource;
 use Objectivehtml\Media\Strategies\JobsConfigClassStrategy;
 use Objectivehtml\Media\Contracts\Strategy as StrategyInterface;
-use Objectivehtml\Media\Contracts\Configable as ConfigableInterface;
 
-class MediaService implements ConfigableInterface {
-
-    use Configable;
-
-    protected $filesystem;
-
-    protected $ffmpeg;
-
-    protected $ffprobe;
+class MediaService extends Service {
 
     protected $plugins;
 
-    public function __construct(Factory $filesystem, array $config)
+    public function __construct(Factory $filesystem, array $config = [])
     {
-        $this->filesystem = $filesystem;
-        $this->mergeConfig($config);
+        parent::__construct($filesystem, $config);
 
         $this->plugins = collect($this->config('plugins'))
             ->map(function($class) {
                 return new $class();
             });
-    }
-
-    /**
-     * Get the aspect ratio of video.
-     *
-     * @param  string $path
-     * @return string
-     */
-    public function aspectRatio($width, $height): string
-    {
-        $gcd = function($width, $height) use (&$gcd) {
-            return ($width % $height) ? $gcd($height, $width % $height) : $height;
-        };
-
-        $gcd = $gcd($width, $height);
-
-        return $width/$gcd . ':' . $height/$gcd;
     }
 
     /**
@@ -81,18 +45,7 @@ class MediaService implements ConfigableInterface {
             }
         });
     }
-
-    /**
-     * Get the bit rate of a video
-     *
-     * @param  {string} $path
-     * @return {int}
-     */
-    public function bitRate($path)
-    {
-        return (int) $this->format($path)->get('bit_rate');
-    }
-
+    
     public function changeDisk(Model $model, $toDisk): Model
     {
         // Check to see if the model's current disk matches the disk that the
@@ -103,18 +56,18 @@ class MediaService implements ConfigableInterface {
             return $model;
         }
 
-        $file = app(MediaService::class)
+        $file = $this
             ->storage()
             ->disk($model->disk)
             ->get($model->relative_path);
 
-        $response = app(MediaService::class)
+        $response = $this
             ->storage()
             ->disk($toDisk)
             ->put($model->relative_path, $file, 'public');
 
         if($response) {
-            app(MediaService::class)
+            $this
                 ->storage()
                 ->disk($model->disk)
                 ->delete($model->relative_path);
@@ -137,7 +90,7 @@ class MediaService implements ConfigableInterface {
      */
     public function translateIntoModel($data)
     {
-        $key = app(MediaService::class)->keyName();
+        $key = $this->keyName();
 
         if($data instanceof Model) {
             return $data;
@@ -159,18 +112,7 @@ class MediaService implements ConfigableInterface {
             return null;
         }
 
-        return app(MediaService::class)->config('model', Model::class)::find($data[$key]);
-    }
-
-    /**
-     * Get the dimensions of a video.
-     *
-     * @param  string $path
-     * @return FFMpeg\Coordinate\Dimension
-     */
-    public function dimensions($path)
-    {
-        return $this->videos($path)->first()->getDimensions();
+        return $this->config('model', Model::class)::find($data[$key]);
     }
 
     /**
@@ -202,17 +144,6 @@ class MediaService implements ConfigableInterface {
     }
 
     /**
-     * Get the duration of a video
-     *
-     * @param  {string} $path
-     * @return {float}
-     */
-    public function duration($path)
-    {
-        return (float) $this->format($path)->get('duration');
-    }
-
-    /**
      * Get the extension from a given path.
      *
      * @param  mixed $path
@@ -221,63 +152,6 @@ class MediaService implements ConfigableInterface {
     public function extension(?string $path): ?string
     {
         return pathinfo($path, PATHINFO_EXTENSION) ?: null;
-    }
-
-    /**
-     * Extract a single frame from a video file at a specified time (in seconds).
-     *
-     * @param  Objectivehtml\Media\Model  $model
-     * @param  int  $timeInSeconds
-     * @param  FFMpeg\Media\Video  $video
-     * @return Objectivehtml\Media\Model
-     */
-    public function extractFrame(Model $model, $timeInSeconds = 0, Video $video = null): Model
-    {
-        $video = $video ?: $this->ffmpeg()->open($model->path);
-
-        $child = app(MediaService::class)->model([
-            'context' => 'frame',
-            'disk' => $model->disk,
-            'mime' => 'image/jpeg',
-            'extension' => 'jpeg',
-            'directory' => $model->directory,
-        ]);
-
-        $video->frame(TimeCode::fromSeconds($timeInSeconds))->save($child->path);
-
-        $child->parent()->associate($model);
-        $child->save();
-
-        return $child;
-    }
-
-    /**
-     * Get an instance of the FFMpeg library.
-     *
-     * @param  array  $config
-     * @return FFMpeg\FFMpeg
-     */
-    public function ffmpeg(array $config = []): FFMpeg
-    {
-        if(!$this->ffmpeg) {
-            $this->ffmpeg = FFMpeg::create(array_merge(app(MediaService::class)->config('ffmpeg'), $config));
-        }
-
-        return $this->ffmpeg;
-    }
-
-    /**
-     * Create a FFProbe instance
-     *
-     * @return FFMpeg\FFProbe
-     */
-    public function ffprobe(array $config = []): FFProbe
-    {
-        if(!$this->ffprobe) {
-            $this->ffprobe = FFProbe::create(array_merge(app(MediaService::class)->config('ffmpeg'), $config));
-        }
-
-        return $this->ffprobe;
     }
 
     public function filename(Model $model, $strategy = null): ?string
@@ -295,17 +169,6 @@ class MediaService implements ConfigableInterface {
     }
 
     /**
-     * Get the format of a video.
-     *
-     * @param  string $path
-     * @return FFMpeg\FFProbe\DataMapping\Format
-     */
-    public function format($path): \FFMpeg\FFProbe\DataMapping\Format
-    {
-        return $this->ffprobe()->format($path);
-    }
-
-    /**
      * Get the models from the request.
      *
      * @param  Illuminate\Http\Request $request
@@ -313,7 +176,7 @@ class MediaService implements ConfigableInterface {
      */
     public function getModelsFromRequest(Request $request, $keys = null): Collection
     {
-        return collect($keys ?: app(MediaService::class)->config('request'))
+        return collect($keys ?: $this->config('request'))
             ->map(function($key) {
                 return request()->input($key);
             })
@@ -322,28 +185,6 @@ class MediaService implements ConfigableInterface {
                 return $this->translateIntoModel($item);
             })
             ->filter();
-    }
-
-    /**
-     * Get the height of a video
-     *
-     * @param  string $path
-     * @return int
-     */
-    public function height($path): int
-    {
-        return (int) $this->dimensions($path)->getHeight();
-    }
-
-    /**
-     * Create an instance of an Image object.
-     *
-     * @param  mixed $image
-     * @return Intervention\Image\Image
-     */
-    public function image($image): Image
-    {
-        return Img::make($image);
     }
 
     /**
@@ -409,7 +250,7 @@ class MediaService implements ConfigableInterface {
 
         if($matching = $this->matching($model)) {
             if($resource && ($attachTo = $resource->attachTo())) {
-                app(MediaService::class)->attachTo($matching, $attachTo);
+                $this->attachTo($matching, $attachTo);
             }
 
             return $matching;
@@ -430,7 +271,7 @@ class MediaService implements ConfigableInterface {
             throw new Exceptions\CannotPreserveOriginalException('Original already exists.');
         }
 
-        $original = app(MediaService::class)->config('model')::make([
+        $original = $this->config('model')::make([
             'context' => 'original',
             'disk' => $model->disk,
             'filename' => $model->filename,
@@ -442,9 +283,9 @@ class MediaService implements ConfigableInterface {
             'meta' => $model->meta
         ]);
 
-        $model->filename = app(MediaService::class)->filename($model);
+        $model->filename = $this->filename($model);
 
-        app(MediaService::class)
+        $this
             ->storage()
             ->disk($model->disk)
             ->copy($original->relative_path, $model->relative_path);
@@ -507,45 +348,25 @@ class MediaService implements ConfigableInterface {
         return $this->filesystem;
     }
 
-    /**
-     * Get the streams from a video file.
-     *
-     * @param  string $path
-     * @return FFMpeg\FFProbe\DataMapping\StreamCollection
-     */
-    public function streams($path): StreamCollection
-    {
-        return $this->ffprobe()->streams($path);
-    }
-
-    /**
-     * Get the video streams from a path.
-     *
-     * @param  string $path
-     * @return FFMpeg\FFProbe\DataMapping\StreamCollection
-     */
-    public function videos($path): StreamCollection
-    {
-        return $this->streams($path)->videos();
-    }
-
-    /**
-     * Get the width of a video
-     *
-     * @param  string $path
-     * @return int
-     */
-    public function width($path): int
-    {
-        return (int) $this->dimensions($path)->getWidth();
-    }
-
-
     public function plugin(Plugin $plugin): PluginableInterface
     {
         $this->plugins->push($plugin);
 
         return $this;
+    }
+
+    public function isPluginInstalled($plugin)
+    {
+        if(!is_string($plugin)) {
+            $plugin = get_class($plugin);
+        }
+
+        return app(MediaService::class)
+            ->plugins()
+            ->map(function($plugin) {
+                return get_class($plugin);
+            })
+            ->contains($plugin);
     }
 
     public function plugins(): Collection

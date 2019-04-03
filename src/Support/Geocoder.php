@@ -10,7 +10,7 @@ use Geocoder\ProviderAggregator;
 use Geocoder\Query\GeocodeQuery;
 use Geocoder\Query\ReverseQuery;
 use Geocoder\Model\AddressCollection;
-use Objectivehtml\Media\MediaService;
+use Objectivehtml\Media\Services\MediaService;
 
 class Geocoder {
 
