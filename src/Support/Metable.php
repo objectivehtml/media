@@ -10,23 +10,21 @@ trait Metable {
 
     public function meta($key = null, $value = null)
     {
-        if(!$this->meta) {
-            $this->meta = collect();
-        }
+        $meta = $this->getMeta();
 
         if(is_null($key)) {
-            return $this->meta;
+            return $meta;
         }
         else if(is_array($key)) {
             foreach($key as $index => $value) {
-                $this->meta->put($index, $value);
+                $meta->put($index, $value);
             }
         }
         else if(is_null($value)) {
-            return $this->meta->get($key);
+            return $meta->get($key);
         }
         else {
-            $this->meta->put($key, $value);
+            $meta->put($key, $value);
         }
 
         return $this;
