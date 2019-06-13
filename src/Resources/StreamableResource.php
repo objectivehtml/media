@@ -2,6 +2,7 @@
 
 namespace Objectivehtml\Media\Resources;
 
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Objectivehtml\Media\Model;
 use Objectivehtml\Media\Services\MediaService;
@@ -21,6 +22,8 @@ abstract class StreamableResource implements StreamableResourceInterface, Conver
 
     use Convertable, Filterable, Metable, Taggable;
 
+    protected $resource;
+
     protected $directoryStrategy;
 
     public function __construct($resource)
@@ -30,6 +33,8 @@ abstract class StreamableResource implements StreamableResourceInterface, Conver
 
     public function __call($key, $args)
     {
+        $key = Str::snake($key);
+        
         if(isset($args[0])) {
             return $this->meta($key, $args[0]);
         }
@@ -65,7 +70,7 @@ abstract class StreamableResource implements StreamableResourceInterface, Conver
         return $this->resource;
     }
 
-    public function setResource($resource)
+    public function setResource($resource): void
     {
         $this->resource = $resource;
     }
@@ -80,6 +85,13 @@ abstract class StreamableResource implements StreamableResourceInterface, Conver
         return app(MediaService::class)->model(array_merge([
             'context' => $this->context()
         ], $attributes ?: []), $this);
+    }
+
+    public function disk($value): self
+    {
+        $this->meta('move_to', $value);
+
+        return $this;
     }
 
     public function save(array $attributes = []): Model

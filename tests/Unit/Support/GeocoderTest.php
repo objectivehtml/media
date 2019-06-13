@@ -1,15 +1,13 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Unit\Support;
 
 use Tests\TestCase;
-use Objectivehtml\Media\Model;
 use Geocoder\Model\AddressCollection;
 use Objectivehtml\Media\Support\Geocoder;
 
-class GeocoderTests extends TestCase
+class GeocoderTest extends TestCase
 {
-
     public function testGeocode()
     {
         $geocoder = new Geocoder;
@@ -27,16 +25,4 @@ class GeocoderTests extends TestCase
 
         $this->assertInstanceOf(AddressCollection::class, $addresses);
     }
-
-    public function testGeocodeNearbyPlaces()
-    {
-        $geocoder = new Geocoder;
-
-        $addresses = $geocoder->nearbyPlaces(40, -86);
-
-        dd($addresses);
-
-        $this->assertInstanceOf(AddressCollection::class, $addresses);
-    }
-
 }

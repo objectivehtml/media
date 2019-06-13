@@ -4,16 +4,21 @@ namespace Objectivehtml\Media\Resources;
 
 use Mimey\MimeTypes;
 use Intervention\Image\Image;
-use Objectivehtml\Media\Model;
-use Illuminate\Http\Testing\File as FakeFile;
-use Symfony\Component\HttpFoundation\File\File;
-use Objectivehtml\Media\Exceptions\InvalidResourceException;
 
 class ImageResource extends StreamableResource {
 
     public function __construct(Image $resource)
     {
         parent::__construct($resource);
+    }
+
+    public function __call($name, $arguments)
+    {
+        if(method_exists($this->resource, $name)) {
+            return $this->resource->$name(...$arguments);
+        }
+
+        return parent::__call($name, $arguments);
     }
 
     public function mime(): string
@@ -43,7 +48,7 @@ class ImageResource extends StreamableResource {
 
     public function stream()
     {
-        return $this->resource->encoded();
+        return $this->resource->stream($this->extension(), $this->size());
     }
 
 }

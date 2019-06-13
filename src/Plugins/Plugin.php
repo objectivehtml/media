@@ -4,8 +4,8 @@ namespace Objectivehtml\Media\Plugins;
 
 use Objectivehtml\Media\Model;
 use Objectivehtml\Media\Support\Applyable;
+use Objectivehtml\Media\Support\PluginObserver;
 use Objectivehtml\Media\Contracts\Plugin as PluginInterface;
-use Objectivehtml\Media\Contracts\Configable as ConfigableInterface;
 
 abstract class Plugin implements PluginInterface {
 
@@ -51,4 +51,14 @@ abstract class Plugin implements PluginInterface {
         return true;
     }
 
+
+    /**
+     * Get the plugin observer instance.
+     *
+     * @return bool
+     */
+    public function observe(string $className)
+    {
+        return new PluginObserver($this, $className);
+    }
 }

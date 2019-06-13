@@ -27,10 +27,10 @@ class ExtractColorPalette implements ShouldQueue
      *
      * @return void
      */
-    public function __construct(Model $model, $total = 1)
+    public function __construct(Model $model, $total = null)
     {
         $this->model = $model;
-        $this->total = $total;
+        $this->total = $total ?: $model->meta->get('extract_colors', app(ImageService::class)->config('image.colors.total'));
     }
 
     /**
@@ -40,12 +40,12 @@ class ExtractColorPalette implements ShouldQueue
      */
     public function handle()
     {
-        $image = app(ImageService::class)->make($this->model->path);
-
-        $image->fit(
-            min($this->model->width, app(ImageService::class)->config('image.colors.max_width', 600)),
-            min($this->model->height, app(ImageService::class)->config('image.colors.max_height', 600))
-        );
+        $image = app(ImageService::class)
+            ->make($this->model->path)
+            ->fit(
+                min($this->model->width, app(ImageService::class)->config('image.colors.max_width', 600)),
+                min($this->model->height, app(ImageService::class)->config('image.colors.max_height', 600))
+            );
 
         // Create a Palette instance from the model url
         $palette = Palette::fromGd(imagecreatefromstring($image->stream()->getContents()));

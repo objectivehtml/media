@@ -4,8 +4,8 @@ namespace Objectivehtml\Media\Support;
 
 use Closure;
 use Http\Client\HttpClient;
-use Http\Client\Curl\Client;
-use Geocoder\Provider\Provider;
+use Illuminate\Support\Str;
+use Http\Adapter\Guzzle6\Client;
 use Geocoder\ProviderAggregator;
 use Geocoder\Query\GeocodeQuery;
 use Geocoder\Query\ReverseQuery;
@@ -52,7 +52,7 @@ class Geocoder {
 
     public function geocode(string $address): AddressCollection
     {
-        $cacheKey = str_slug(strtolower(urlencode($address)));
+        $cacheKey = Str::slug(strtolower(urlencode($address)));
 
         return $this->cache($cacheKey, function() use ($address) {
             return $this->geocoder()->geocodeQuery(
@@ -63,7 +63,7 @@ class Geocoder {
 
     public function reverse(float $latitude, float $longitude): AddressCollection
     {
-        $cacheKey = str_slug(strtolower(urlencode("{$latitude}-{$longitude}")));
+        $cacheKey = Str::slug(strtolower(urlencode("{$latitude}-{$longitude}")));
 
         return $this->cache($cacheKey, function() use ($latitude, $longitude) {
             return $this->geocoder()->reverseQuery(
@@ -75,7 +75,7 @@ class Geocoder {
     /*
     public function nearbyPlaces(float $latitude, float $longitude): AddressCollection
     {
-        $cacheKey = str_slug(strtolower(urlencode("nearby-{$latitude}-{$longitude}")));
+        $cacheKey = Str::slug(strtolower(urlencode("nearby-{$latitude}-{$longitude}")));
 
         return $this->cache($cacheKey, function() use ($latitude, $longitude) {
             return $this->geocoder()->reverseQuery(

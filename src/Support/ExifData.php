@@ -2,6 +2,8 @@
 
 namespace Objectivehtml\Media\Support;
 
+use Illuminate\Support\Arr;
+
 class ExifData {
 
     protected $data;
@@ -22,7 +24,7 @@ class ExifData {
 
     public function get($key)
     {
-        return array_get($this->data, $key);
+        return Arr::get($this->data, $key);
     }
 
     public function latitude()

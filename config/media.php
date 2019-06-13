@@ -16,8 +16,9 @@ use Objectivehtml\Media\Strategies\DirectoryStrategy;
 use Objectivehtml\Media\Conversions\PreserveOriginal;
 use Objectivehtml\Media\Strategies\ModelMatchingStrategy;
 use Objectivehtml\Media\Http\Controllers\MediaController;
-use Objectivehtml\Media\Conversions\Image\ResizeMaxDimensions;
+use Objectivehtml\Media\Filters\Image\ResizeMaxDimensions;
 use Objectivehtml\Media\Strategies\ObfuscatedDirectoryStrategy;
+use Objectivehtml\Media\Jobs\ExtractColorPalette;
 
 return [
 
@@ -41,7 +42,10 @@ return [
 
         'model' => TemporaryModel::class,
 
-        'context' => '__temp__'
+        'context' => '__temp__',
+
+        'delay' => 3600,
+        
     ],
 
     /**
@@ -61,7 +65,7 @@ return [
      * If true, the library with handle the saved and deleted observers so that
      * media is automatically attached/synced to the models that implements the
      * Objectivehtml\Media\Mediable trait. Setting this false will disable the
-     * default functionality and leave it up to your to implement this
+     * default functionality and leave it up to you to implement this
      * functionality within your app.
      */
     'use_observer' => true,
@@ -169,18 +173,31 @@ return [
      * Image plugin settings.
      */
     'image' => [
-
-        // The conversions that should be applied to all images.
-        'filters' => [
-            //
+        
+        'jobs' => [
+            ExtractColorPalette::class
         ],
 
         // The conversions that should be applied to all images.
+        /*
+        'filters' => [
+            [ResizeMaxDimensions::class, [
+                env('IMAGES_MAX_WIDTH', 2048),
+                env('IMAGES_MAX_HEIGHT', 1536)
+            ]]
+        ],
+        */
+
+        // The conversions that should be applied to all images.
+        /*
         'conversions' => [
             [PreserveOriginal::class],
-            [ResizeMaxDimensions::class, [env('IMAGES_MAX_WIDTH', 2048), env('IMAGES_MAX_HEIGHT', 1536)]],
-            [Thumbnail::class, [env('IMAGES_THUMB_WIDTH', 100), env('IMAGES_THUMB_HEIGHT', 100)]]
+            [Thumbnail::class, [
+                env('IMAGES_THUMB_WIDTH', 100),
+                env('IMAGES_THUMB_HEIGHT', 100)
+            ]]
         ],
+        */
 
         // Supports GD or Imagic
         'driver' => 'imagick',
@@ -303,8 +320,6 @@ return [
         'locale' => 'en',
 
         'api_key' => env('GOOGLE_MAPS_API_KEY'),
-
-        'sync_request_key' => 'sync_geocoder',
 
         'providers' => [
             Chain::class => [

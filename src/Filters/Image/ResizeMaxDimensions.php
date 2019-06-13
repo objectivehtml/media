@@ -1,17 +1,13 @@
 <?php
 
-namespace Objectivehtml\Media\Conversions\Image;
+namespace Objectivehtml\Media\Filters\Image;
 
 use Objectivehtml\Media\Model;
 use Objectivehtml\Media\Filters\Image\Fit;
 use Objectivehtml\Media\Support\ApplyToImages;
 use Objectivehtml\Media\Services\ImageService;
-use Objectivehtml\Media\conversions\Conversion;
-use Objectivehtml\Media\Contracts\Conversion as ConversionInterface;
 
-class ResizeMaxDimensions extends Conversion implements ConversionInterface {
-
-    use ApplyToImages;
+class ResizeMaxDimensions extends ImageFilter {
 
     public $width;
 

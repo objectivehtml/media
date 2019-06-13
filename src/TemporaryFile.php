@@ -6,12 +6,13 @@ use Closure;
 use Exception;
 use Objectivehtml\Media\TemporaryModel;
 use Symfony\Component\HttpFoundation\File\File;
+use Objectivehtml\Media\Resources\FileResource;
 use Objectivehtml\Media\Resources\RemoteResource;
 use Objectivehtml\Media\Contracts\StreamableResource;
 
 class TemporaryFile {
 
-    public function __construct(TemporaryModel $model, Closure $callback)
+    public function __construct(TemporaryModel $model = null, ?Closure $callback)
     {
         try {
             $callback($model);
@@ -26,10 +27,15 @@ class TemporaryFile {
             throw $e;
         }
     }
-
+    
     public static function make(Model $model, Closure $callback)
     {
-        if($model->resource()) {
+        if(file_exists($model->path)) {
+            $resource = new FileResource(new File($model->path));
+            
+            return new static(static::model($model, $resource), $callback);
+        }
+        else if($model->resource()) {
             $resource = $model->resource();
         }
         else if(!file_exists($model) && $model->fileExists) {
@@ -37,11 +43,8 @@ class TemporaryFile {
                 file_exists($model->path) ? $model->path : url($model->url)
             );
         }
-        else if(file_exists($model->path)) {
-            $resource = new FileResource(new File($model->path));
-        }
         else if(!$model->resource()) {
-            throw new InvalidResourceException();
+            throw new InvalidResourceException;
         }
 
         return new static(static::model($model, $resource), $callback);
@@ -56,7 +59,7 @@ class TemporaryFile {
         ]);
 
         $model->parent()->associate($parent);
-        $model->setResource($resource);
+        $model->resource($resource);
         $model->save();
 
         return $model;

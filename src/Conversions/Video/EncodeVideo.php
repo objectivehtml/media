@@ -204,9 +204,6 @@ class EncodeVideo extends Conversion implements ConversionInterface {
         if($original = $model->children()->original()->first()) {
             return $original;
         }
-        else if($model->parent && ($original = $model->parent->children()->original()->first())) {
-            return $original;
-        }
         else if($model->parent) {
             return $model->parent->children()->original()->first() ?: $model->parent;
         }

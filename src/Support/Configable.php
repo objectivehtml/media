@@ -2,13 +2,15 @@
 
 namespace Objectivehtml\Media\Support;
 
+use Illuminate\Support\Arr;
+
 trait Configable {
 
     protected $config = [];
 
     public function config($key = null, $default = null)
     {
-        return !is_null($value = array_get($this->config, $key)) ? $value : $default;
+        return !is_null($value = Arr::get($this->config, $key)) ? $value : $default;
     }
 
     public function getConfig() : array

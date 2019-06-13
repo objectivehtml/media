@@ -4,8 +4,8 @@ namespace Tests\Unit;
 
 use Media;
 use Tests\TestCase;
-use Objectivehtml\Media\Strategies\DirectoryStrategy;
 use Objectivehtml\Media\Strategies\ObfuscatedDirectoryStrategy;
+use Objectivehtml\Media\Contracts\Strategy as StrategyInterface;
 
 class DirectoryStrategyTest extends TestCase
 {
@@ -18,7 +18,8 @@ class DirectoryStrategyTest extends TestCase
 
         $model->save();
 
-        $this->assertThat(DirectoryStrategy::make()($model), $this->equalTo((string) $model->getKey()));
+        $this->assertTrue(Media::directoryStrategy() instanceof StrategyInterface);
+        $this->assertThat(Media::directoryStrategy()($model), $this->equalTo((string) $model->getKey()));
     }
 
     public function testObfuscatedDirectoryStrategy()

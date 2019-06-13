@@ -13,5 +13,4 @@ interface Plugin {
     public function conversions(Model $model): array;
 
     public function doesMeetRequirements(): bool;
-
 }

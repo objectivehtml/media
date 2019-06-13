@@ -9,9 +9,8 @@ use Objectivehtml\Media\Support\Applyable;
 use Objectivehtml\Media\Support\ApplyToVideos;
 use Objectivehtml\Media\Services\VideoService;
 use Objectivehtml\Media\Conversions\Video\EncodeVideo;
-use Objectivehtml\Media\Conversions\Video\ExtractFrames;
 use Objectivehtml\Media\Strategies\ConfigClassStrategy;
-use Objectivehtml\Media\Strategies\JobsConfigClassStrategy;
+use Objectivehtml\Media\Conversions\Video\ExtractFrames;
 
 class VideoPlugin extends Plugin {
 
@@ -19,7 +18,7 @@ class VideoPlugin extends Plugin {
 
     public function created(Model $model)
     {
-        if($this->doesApplyToModel($model) && $model->fileExists) {
+        if($model->fileExists) {
             if(!$model->meta->get('width') && !$model->meta->get('height')) {
                 $model->meta('width', $width = app(VideoService::class)->width($model->path));
                 $model->meta('height', $height = app(VideoService::class)->height($model->path));
@@ -66,28 +65,17 @@ class VideoPlugin extends Plugin {
 
     public function jobs(Model $model): array
     {
-        return array_map(
-            JobsConfigClassStrategy::make($model),
-            app(VideoService::class)->config('video.jobs', [])
-        );
+        return ConfigClassStrategy::map(app(MediaService::class)->config('video.jobs', []), $model);
     }
 
     public function filters(Model $model): array
     {
-        return array_map(
-            ConfigClassStrategy::make(),
-            app(VideoService::class)->config('video.filters', [])
-        );
+        return ConfigClassStrategy::map(app(MediaService::class)->config('video.filters', []));
     }
 
     public function conversions(Model $model): array
     {
-        $conversions = array_map(
-            ConfigClassStrategy::make(),
-            app(VideoService::class)->config('video.conversions', [])
-        );
-
-        return collect($conversions)
+        return ConfigClassStrategy::collect(app(MediaService::class)->config('video.conversions', []))
             ->concat([
                 new ExtractFrames(),
                 new EncodeVideo([

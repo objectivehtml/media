@@ -1,17 +1,13 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Unit;
 
-use Media;
-use Storage;
-use Exception;
 use Carbon\Carbon;
 use Tests\TestCase;
 use Illuminate\Http\File;
 use Illuminate\Http\UploadedFile;
-use Objectivehtml\Media\Model;
-use Objectivehtml\Media\Services\MediaService;
 use Objectivehtml\Media\Filters\Image\Crop;
+use Objectivehtml\Media\Services\MediaService;
 use Objectivehtml\Media\Filters\Image\Greyscale;
 use Objectivehtml\Media\Conversions\Audio\Waveform;
 use Objectivehtml\Media\Conversions\Video\Homepage;

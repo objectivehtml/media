@@ -11,23 +11,20 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
-class MovedModelToDisk
+class ReplacedModelResource
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $model;
-
-    public $fromDisk;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(Model $model, $fromDisk)
+    public function __construct(Model $model)
     {
         $this->model = $model;
-        $this->fromDisk = $fromDisk;
     }
 
     /**

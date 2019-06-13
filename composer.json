@@ -4,7 +4,6 @@
     "description": "A simple media management package for Laravel.",
     "keywords": ["media", "image", "video", "file", "management"],
     "license": "MIT",
-    "minimum-stability": "dev",
     "authors": [
         {
             "name": "Justin Kimbrell",
@@ -14,27 +13,28 @@
     "require": {
         "php": ">=7.1",
         "laravel/framework": "^5.5",
-        "fzaninotto/faker": "^1.8",
         "intervention/image": "^2.4",
         "intervention/imagecache": "^2.3",
         "league/color-extractor": "0.3.*",
-        "ralouphie/mimey": "^2.0",
-        "geocoder-php/google-maps-provider": "^4.0@dev"
+        "ralouphie/mimey": "^2.1",
+        "geocoder-php/google-maps-provider": "^4.4",
+        "php-http/guzzle6-adapter": "^2.0",
+        "php-http/message": "^1.7"
     },
     "require-dev": {
-        "orchestra/testbench": "~3.6",
-        "mockery/mockery": "^1.1",
-        "phpunit/phpunit": "^7.2"
+        "fzaninotto/faker": "^1.8",
+        "orchestra/testbench": "~3.8",
+        "mockery/mockery": "^1.2",
+        "phpunit/phpunit": "^8.2"
     },
     "autoload": {
         "psr-4": {
-            "Objectivehtml\\Media\\": "src/",
-            "Tests\\": "tests/"
+            "Objectivehtml\\Media\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4" : {
-            "Tests\\": "tests"
+            "Tests\\": "tests/"
         }
     },
     "repositories": [
@@ -46,7 +46,8 @@
     "extra": {
         "laravel": {
             "providers": [
-                "\\Objectivehtml\\Media\\MediaServiceProvider"
+                "\\Objectivehtml\\Media\\AppServiceProvider",
+                "\\Objectivehtml\\Media\\EventServiceProvider"
             ],
             "aliases": {
                 "Media": "\\Objectivehtml\\Media\\Facades\\Media"
@@ -54,10 +55,6 @@
         }
     },
     "suggest": {
-        "geocoder-php/google-maps-provider": "geocoder-php/google-maps-provider is required for geolocation support.",
-        "php-http/guzzle6-adapter": "php-http/guzzle6-adapter is required for geolocation support.",
-        "php-http/message": "php-http/message is required for geolocation support.",
-        "php-http/curl-client": "php-http/curl-client is required for geolocation support.",
         "php-ffmpeg/php-ffmpeg": "php-ffmpeg/php-ffmpeg is required for video support.",
         "php-ffmpeg/binary-driver:dev-master": "FFMpeg binary package is required for video support."
     }

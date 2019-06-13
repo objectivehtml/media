@@ -3,6 +3,7 @@
 namespace Objectivehtml\Media\Services;
 
 use Illuminate\Http\Request;
+use Intervention\Image\Image;
 use Objectivehtml\Media\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\Support\Jsonable;
@@ -13,8 +14,10 @@ use Objectivehtml\Media\Resources\FileResource;
 use Objectivehtml\Media\Resources\ImageResource;
 use Objectivehtml\Media\Resources\RemoteResource;
 use Objectivehtml\Media\Contracts\StreamableResource;
-use Objectivehtml\Media\Strategies\JobsConfigClassStrategy;
+use Objectivehtml\Media\Strategies\ConfigClassStrategy;
+use Objectivehtml\Media\Exceptions\InvalidResourceException;
 use Objectivehtml\Media\Contracts\Strategy as StrategyInterface;
+use Objectivehtml\Media\Exceptions\CannotPreserveOriginalException;
 
 class MediaService extends Service {
 
@@ -39,48 +42,11 @@ class MediaService extends Service {
      */
     public function attachTo(Model $model, \Illuminate\Database\Eloquent\Model $attachTo)
     {
-        collect([$attachTo])->each(function($attachTo) use ($model) {
-            if(!$attachTo->media()->get()->contains($model)) {
-                $attachTo->media()->attach($model);
-            }
-        });
+        if(!$attachTo->media()->get()->contains($model)) {
+            $attachTo->media()->attach($model);
+        }
     }
     
-    public function changeDisk(Model $model, $toDisk): Model
-    {
-        // Check to see if the model's current disk matches the disk that the
-        // model is being changed to. If a match, just ignore the request.
-        if($model->disk === $toDisk) {
-            // Use to throw an error... testing to see if silence is better.
-            // throw new Exceptions\CannotMoveModelException('Cannot move model to disk "'.$model->disk.'" because it already exists on that disk.');
-            return $model;
-        }
-
-        $file = $this
-            ->storage()
-            ->disk($model->disk)
-            ->get($model->relative_path);
-
-        $response = $this
-            ->storage()
-            ->disk($toDisk)
-            ->put($model->relative_path, $file, 'public');
-
-        if($response) {
-            $this
-                ->storage()
-                ->disk($model->disk)
-                ->delete($model->relative_path);
-
-            $model->disk = $toDisk;
-        }
-
-        $model->meta('move_to', null);
-        $model->save();
-
-        return $model;
-    }
-
     /**
      * Attempst to convert the given data into a Objectivehtml\Media\Model
      * instance.
@@ -268,7 +234,7 @@ class MediaService extends Service {
     public function preserveOriginal(Model $model)
     {
         if($model->children()->context('original')->count()) {
-            throw new Exceptions\CannotPreserveOriginalException('Original already exists.');
+            throw new CannotPreserveOriginalException('Original already exists.');
         }
 
         $original = $this->config('model')::make([
@@ -303,20 +269,25 @@ class MediaService extends Service {
 
     public function resource($file)
     {
-        if($file instanceof File) {
-            return new FileResource($file);
+        try {
+            if($file instanceof File) {
+                return new FileResource($file);
+            }
+            else if($file instanceof Image) {
+                return new ImageResource($file);
+            }
+            else if(is_string($file) && file_exists($file)) {
+                return new FileResource(new File($file));
+            }
+            else if(is_string($file) && $stream = fopen($file, 'rb')) {
+                return new RemoteResource($stream);
+            }
         }
-        else if($file instanceof Image) {
-            return new ImageResource($file);
-        }
-        else if(is_string($file) && file_exists($file)) {
-            return new FileResource(new File($file));
-        }
-        else if(is_string($file) && $stream = fopen($file, 'rb')) {
-            return new RemoteResource($stream);
+        catch(\ErrorException $e) {
+            //
         }
 
-        throw new Exceptions\InvalidResourceException;
+        throw new InvalidResourceException($file);
     }
 
     public function formatBytes($size) {
@@ -339,8 +310,8 @@ class MediaService extends Service {
     {
         $model = $this->model($attributes, $resource);
         $model->save();
-
-        return $model;
+        
+        return $model->fresh();
     }
 
     public function storage(): Factory
@@ -361,8 +332,7 @@ class MediaService extends Service {
             $plugin = get_class($plugin);
         }
 
-        return app(MediaService::class)
-            ->plugins()
+        return $this->plugins()
             ->map(function($plugin) {
                 return get_class($plugin);
             })
@@ -385,8 +355,8 @@ class MediaService extends Service {
 
     public function jobs(Model $model)
     {
-        $globalJobs = collect(array_map(JobsConfigClassStrategy::make($model), $this->config('jobs', [])));
-
+        $globalJobs = ConfigClassStrategy::collect($this->config('jobs', []), $model);
+        
         return collect()
             ->concat($globalJobs)
             ->concat($this->pluginsThatApplyTo($model)->map(function($plugin) use ($model) {

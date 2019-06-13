@@ -10,7 +10,6 @@ use Objectivehtml\Media\Support\ApplyToAudio;
 use Objectivehtml\Media\Services\MediaService;
 use Objectivehtml\Media\Services\VideoService;
 use Objectivehtml\Media\Strategies\ConfigClassStrategy;
-use Objectivehtml\Media\Strategies\JobsConfigClassStrategy;
 
 class AudioPlugin extends Plugin {
 
@@ -18,10 +17,6 @@ class AudioPlugin extends Plugin {
 
     public function created(Model $model)
     {
-        if(!$this->doesApplyToModel($model)) {
-            return;
-        }
-
         if(!$model->meta->get('taken_at')) {
             $tags = app(VideoService::class)->format($model->path)->get('tags');
 
@@ -32,17 +27,17 @@ class AudioPlugin extends Plugin {
 
     public function jobs(Model $model): array
     {
-        return array_map(JobsConfigClassStrategy::make($model), app(MediaService::class)->config('audio.jobs', []));
+        return ConfigClassStrategy::map(app(MediaService::class)->config('audio.jobs', []), $model);
     }
 
     public function filters(Model $model): array
     {
-        return array_map(ConfigClassStrategy::make(), app(MediaService::class)->config('audio.filters', []));
+        return ConfigClassStrategy::map(app(MediaService::class)->config('audio.filters', []));
     }
 
     public function conversions(Model $model): array
     {
-        return array_map(ConfigClassStrategy::make(), app(MediaService::class)->config('audio.conversions', []));
+        return ConfigClassStrategy::map(app(MediaService::class)->config('audio.conversions', []));
     }
 
     public function doesMeetRequirements(): bool

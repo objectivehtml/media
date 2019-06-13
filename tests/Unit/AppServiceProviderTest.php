@@ -4,11 +4,10 @@ namespace Tests\Unit;
 
 use Media;
 use Tests\TestCase;
-use Objectivehtml\Media\MediaServiceProvider;
 use Objectivehtml\Media\Services\MediaService;
 use Objectivehtml\Media\Facades\Media as Facade;
 
-class MediaServiceProviderTest extends TestCase
+class AppServiceProviderTest extends TestCase
 {
 
     public function testServiceCanBoot()

@@ -2,26 +2,22 @@
 
 namespace Objectivehtml\Media;
 
-use Carbon\Carbon;
-use Objectivehtml\Media\Support\Metable;
-use Objectivehtml\Media\Jobs\StartQueue;
 use Objectivehtml\Media\Jobs\MarkAsReady;
 use Objectivehtml\Media\Jobs\ApplyFilter;
-use Objectivehtml\Media\Jobs\ApplyFilters;
 use Objectivehtml\Media\Support\ExifData;
 use Objectivehtml\Media\Support\QueryScopes;
-use Objectivehtml\Media\Jobs\GenerateImages;
+use Illuminate\Filesystem\FilesystemManager;
 use Objectivehtml\Media\Jobs\ApplyConversion;
-use Objectivehtml\Media\Jobs\ApplyConversions;
 use Objectivehtml\Media\Services\MediaService;
 use Objectivehtml\Media\Events\FavoritedMedia;
+use Objectivehtml\Media\Events\MovedModelToDisk;
 use Objectivehtml\Media\Events\UnfavoritedMedia;
-use Objectivehtml\Media\Conversions\Conversions;
 use Objectivehtml\Media\Jobs\StartProcessingMedia;
 use Objectivehtml\Media\Jobs\FinishProcessingMedia;
 use Illuminate\Database\Eloquent\Model as BaseModel;
+use Objectivehtml\Media\Events\ReplacedModelResource;
 use Objectivehtml\Media\Contracts\StreamableResource;
-use Intervention\Image\Exception\NotReadableException;
+use Objectivehtml\Media\Exceptions\InvalidResourceException;
 use Objectivehtml\Media\Contracts\Filter as FilterInterface;
 use Objectivehtml\Media\Contracts\Conversion as ConversionInterface;
 
@@ -29,11 +25,6 @@ class Model extends BaseModel
 {
     use QueryScopes;
 
-    /**
-     * The resource associated to the model.
-     *
-     * @var resource
-     */
     protected $resource;
 
     /**
@@ -169,7 +160,7 @@ class Model extends BaseModel
     }
 
     /**
-     * Change the filebane's extension in the database. This method does not
+     * Change the filename's extension in the database. This method does not
      * actually alter the file.
      *
      * @param  string $extension
@@ -282,7 +273,7 @@ class Model extends BaseModel
      */
     public function getPathAttribute()
     {
-        return !is_null($this->directory) ? app(MediaService::class)->storage()->disk($this->disk)->path($this->relative_path) : null;
+        return !is_null($this->directory) ? $this->storage()->disk($this->disk)->path($this->relative_path) : null;
     }
 
     /**
@@ -306,40 +297,13 @@ class Model extends BaseModel
     }
 
     /**
-     * Get the taken at attribute from the meta data.
-     *
-     * @return mixed
-     */
-
-    /*
-    public function getTakenAtAttribute(): ?Carbon
-    {
-        if($takenAt = $this->meta->get('taken_at')) {
-            if(is_array($takenAt)) {
-                return new Carbon($takenAt['date'], $takenAt['timezone']);
-            }
-            else if(is_string($takenAt)) {
-                return Carbon::parse($takenAt);
-            }
-        }
-        else if(isset($this->attributes['taken_at'])) {
-            dd($this->attributes);
-
-            return $this->toDate($this->attributes['taken_at']);
-        }
-
-        return $this->created_at;
-    }
-    */
-
-    /**
      * Get the path for the associated file.
      *
      * @param $value
      */
     public function getUrlAttribute()
     {
-        return !is_null($this->directory) ? app(MediaService::class)->storage()->disk($this->disk)->url($this->relative_path) : null;
+        return !is_null($this->directory) ? $this->storage()->disk($this->disk)->url($this->relative_path) : null;
     }
 
     /**
@@ -359,24 +323,27 @@ class Model extends BaseModel
      */
     public function doesFileExist(): bool
     {
-        return app(MediaService::class)->storage()->disk($this->disk)->exists($this->relative_path);
+        return $this->storage()->disk($this->disk)->exists($this->relative_path);
     }
 
-    /**
-     * Get the resource property.
-     *
-     * @param  StreamableResource $resource
-     * @return mixed
-     */
-    public function getResource(): StreamableResource
+    public function replaceResource(StreamableResource $resource)
     {
-        return $this->resource;
+        $response = $this->storage()->disk($this->disk)->put(
+            $this->relative_path, $resource->stream()
+        );
+
+        if($response) {
+            $this->resource = $resource;
+    
+            event(new ReplacedModelResource($this));
+        }
+
+        return $response;
     }
 
     public function ensureTemporaryDirectoryExists()
     {
-        $path = app(MediaService::class)
-            ->storage()
+        $path = $this->storage()
             ->disk(app(MediaService::class)->config('temp.disk'))
             ->path($this->relative_path);
 
@@ -418,20 +385,21 @@ class Model extends BaseModel
     }
 
     /**
-     * Set the resource property.
+     * Get the resource property.
      *
      * @param  StreamableResource $resource
      * @return mixed
      */
-    public function resource(StreamableResource $resource = null)
+    public function getResource(): ?StreamableResource
     {
-        if($resource) {
-            $this->resource = $resource;
-
-            return $this;
+        if($this->resource) {
+            return $this->resource;
+        }
+        else if(file_exists($path = $this->path ?: $this->url)) {
+            return $this->resource = app(MediaService::class)->resource($path);
         }
 
-        return $this->resource;
+        return null;
     }
 
     /**
@@ -443,6 +411,36 @@ class Model extends BaseModel
     public function setResource(?StreamableResource $resource)
     {
         $this->resource = $resource;
+    }
+
+    /**
+     * Set the resource property.
+     *
+     * @param  StreamableResource $resource
+     * @return mixed
+     */
+    public function resource(StreamableResource $resource = null)
+    {
+        if($resource) {
+            $this->setResource($resource);
+            
+            return $this;
+        }
+
+        if($this->resource) {
+            return $this->resource;
+        }
+
+        if(file_exists($this->path)) {
+            return app(MediaService::class)->resource($this->path);
+        }
+
+        try {
+            return app(MediaService::class)->resource($this->url);
+        }
+        catch(InvalidResourceException $e) {
+            return null;
+        }
     }
 
     /**
@@ -544,17 +542,71 @@ class Model extends BaseModel
     }
 
     /**
+     * Helper to get the file system from the MediaService provider.
+     *
+     * @return Objectivehtml\Media\Model
+     */
+    public function storage(): FilesystemManager
+    {
+        return app(MediaService::class)->storage();
+    }
+
+    /**
      * Determines if the model needs moved to another disk.
      *
      * @return bool
      */
-    public function shouldChangeDisk()
+    public function shouldChangeDisk(): bool
     {
         if($this->isParent()) {
             return $this->ready && $this->meta->get('move_to');
         }
 
         return $this->ready && !$this->parent->temporary();
+    }
+
+    public function isGeocoded(): bool
+    {
+        return !!$this->meta->get('geocoder');
+    }
+
+    public function shouldGeocodeExif(): bool
+    {
+        return !$this->isGeocoded() && (
+            $this->exif && $this->exif->latitude && $this->exif->longitude
+        );
+    }
+
+    /**
+     * Move the move to another disk and queues the old file for deletion.
+     *
+     * @return void
+     */
+    public function moveToDisk($disk)
+    {
+        // Check to see if the model's current disk matches the disk that the
+        // model is being changed to. If a match, just ignore the request.
+        if($this->disk !== $disk) {
+            $response = $this->storage()->disk($disk)->writeStream(
+                $this->relative_path, $this->storage()->disk($this->disk)->readStream($this->relative_path)
+            );
+
+            if($response) {
+                $event = new MovedModelToDisk($this, $this->disk);
+                
+                $this->disk = $disk;
+                $this->meta('move_to', null);
+                $this->save();
+
+                event($event);
+            }
+        }
+        // else {
+            // Use to throw an error... testing to see if silence is better.
+            // throw new Exceptions\CannotMoveModelException('Cannot move model to disk "'.$this->disk.'" because it already exists on that disk.');
+        // }
+
+        return $this;
     }
 
     /**
@@ -589,8 +641,10 @@ class Model extends BaseModel
      */
     public function encode()
     {
+        $jobs = collect();
+
         if($this->isParent() && $this->fileExists) {
-            $jobs = collect()
+            $jobs = $jobs
                 ->concat(app(MediaService::class)->jobs($this))
                 ->concat(
                     app(MediaService::class)
@@ -605,16 +659,10 @@ class Model extends BaseModel
                         ->map(function($filter) {
                             return new ApplyFilter($this, $filter);
                         })
-                )
-                ->concat([
-                    new MarkAsReady($this),
-                    new FinishProcessingMedia($this)
-                ]);
-
-            StartProcessingMedia::withChain($jobs->all())->dispatch($this);
+                );
         }
         else if(file_exists($this->path)) {
-            $jobs = collect()
+            $jobs = $jobs
                 ->concat(
                     $this->conversions->map(function($conversion) {
                         return new ApplyConversion($this, $conversion);
@@ -624,14 +672,15 @@ class Model extends BaseModel
                     $this->filters->map(function($filter) {
                         return new ApplyFilter($this, $filter);
                     })
-                )
-                ->concat([
-                    new MarkAsReady($this),
-                    new FinishProcessingMedia($this)
-                ]);
-
-            StartProcessingMedia::withChain($jobs->all())->dispatch($this);
+                );
         }
+
+        $jobs = $jobs->concat([
+            new MarkAsReady($this),
+            new FinishProcessingMedia($this)
+        ]);
+        
+        StartProcessingMedia::withChain($jobs->all())->dispatch($this);
     }
 
     /**
@@ -646,22 +695,10 @@ class Model extends BaseModel
         static::observe(MediaObserver::class);
 
         foreach(app(MediaService::class)->plugins() as $plugin) {
-            static::observe($plugin);
+            if($plugin->doesMeetRequirements()) {
+                $plugin->observe(static::class);
+            }
         }
-
-        /*
-        static::saving(function(Model $model) {
-            if($model->mime) {
-                $model->tag(explode('/', $model->mime)[0]);
-            }
-        });
-
-        static::saved(function(Model $model) {
-            if($model->resource() && ($attachTo = $model->resource()->attachTo())) {
-                app(MediaService::class)->attachTo($model, $attachTo);
-            }
-        });
-        */
 
         static::created(function(Model $model) {
             if($model->isTemporaryFile()) {

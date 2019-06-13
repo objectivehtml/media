@@ -3,10 +3,11 @@
 namespace Tests;
 
 use Queue;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\ImageManagerStatic as Image;
-use Objectivehtml\Media\MediaServiceProvider;
+use Objectivehtml\Media\AppServiceProvider;
 use Objectivehtml\Media\Facades\Media as Facade;
+use Intervention\Image\ImageManagerStatic as Image;
 
 class TestCase extends \Orchestra\Testbench\TestCase
 {
@@ -16,7 +17,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
         $model->name = 'test';
         $model->email = 'test@test.com';
         $model->password = '$2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm'; // secret
-        $model->remember_token = str_random(10);
+        $model->remember_token = Str::random(10);
         $model->save();
 
         return $model;
@@ -25,7 +26,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
     /**
     * Setup the test environment.
     */
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -35,9 +36,9 @@ class TestCase extends \Orchestra\Testbench\TestCase
             '--database' => 'testbench'
         ]);
 
+        Storage::fake('s3');
         Storage::fake('local');
         Storage::fake('public');
-        Storage::fake('s3');
     }
 
     /**
@@ -60,7 +61,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
     protected function getPackageProviders($app)
     {
         return [
-            MediaServiceProvider::class
+            AppServiceProvider::class
         ];
     }
 

@@ -31,6 +31,15 @@ class Thumbnail extends Conversion implements ConversionInterface {
 
     public function apply(Model $model)
     {
+        /*
+        $model->resource()
+            ->filters([
+                new Fit($this->width, $this->height)
+            ])
+            ->context('thumbnail')
+            ->convert();
+        */
+
         app(MediaService::class)
             ->resource($model->path)
             ->filters([

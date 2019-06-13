@@ -1,10 +1,8 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Unit\Support;
 
-use Media;
 use Tests\User;
-
 use Faker\Factory;
 use Tests\TestCase;
 use Illuminate\Http\Request;
@@ -13,12 +11,13 @@ use Objectivehtml\Media\Filters\Image\Greyscale;
 
 class MediableTest extends TestCase
 {
-
     public function testAddingFromFile()
     {
         $file = UploadedFile::fake()->image('test.jpeg', 1, 1);
 
-        $model = ($user = $this->user())->addMedia($file, function($resource) {
+        $user = $this->user();
+        
+        $model = $user->addMedia($file, function($resource) {
             $resource->filter(new Greyscale);
             $resource->tag('avatar');
             $resource->meta([
@@ -26,9 +25,8 @@ class MediableTest extends TestCase
             ]);
         });
 
-        $this->assertCount(1, $model->filters);
-        $this->assertCount(1, $model->children()->context('thumbnail')->get());
         $this->assertCount(1, $user->media);
+        $this->assertCount(1, $model->filters);
     }
 
     public function testAddMultipleFilesFromRequest()
@@ -41,7 +39,9 @@ class MediableTest extends TestCase
             ]
         ]);
 
-        $files = ($user = $this->user())->addMediaFromRequest($request, function($resource) {
+        $user = $this->user();
+
+        $files = $user->addMediaFromRequest($request, function($resource) {
             $resource->preserveOriginal(false);
         });
 
@@ -51,30 +51,7 @@ class MediableTest extends TestCase
         $user->media()->detach($files->last());
 
         $this->assertCount(1, $user->media);
-
     }
-
-    /*
-    public function testAddFilesFromFileBag()
-    {
-        $request = new Request([], [], [], [], [
-            'files' => [
-                UploadedFile::fake()->image('1.jpeg', 1, 1),
-                UploadedFile::fake()->image('2.jpeg', 1, 1),
-                UploadedFile::fake()->image('3.jpeg', 1, 1),
-            ]
-        ]);
-
-        $user = $this->user();
-
-        $files = $user->addMediaFromRequest($request->files, function($resource) {
-            $resource->preserveOriginal(false);
-        });
-
-        $this->assertCount(count($request->file('files')), $files);
-
-    }
-    */
 
     public function user(array $attributes = [])
     {

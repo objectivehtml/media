@@ -1,22 +1,12 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Unit;
 
 use Media;
 use Tests\TestCase;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Collection;
 use Objectivehtml\Media\Model;
+use Illuminate\Http\UploadedFile;
 use Objectivehtml\Media\Services\MediaService;
-use Illuminate\Contracts\Filesystem\Factory;
-use Intervention\Image\ImageManagerStatic as Image;
-use Objectivehtml\Media\MediaServiceProvider;
-use Objectivehtml\Media\Filters\Image\Crop;
-use Objectivehtml\Media\Facades\Media as Facade;
-use Objectivehtml\Media\Filters\Image\Greyscale;
-use Objectivehtml\Media\Conversions\Image\Thumbnail;
-use Objectivehtml\Media\Contracts\Strategy as StrategyInterface;
 
 class MediaEndpointTest extends TestCase
 {

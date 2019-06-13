@@ -3,9 +3,8 @@
 namespace Objectivehtml\Media\Resources;
 
 use Mimey\MimeTypes;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use Symfony\Component\HttpFoundation\File\File;
-use Objectivehtml\Media\Exceptions\InvalidResourceException;
 
 class RemoteResource extends StreamableResource {
 
@@ -82,7 +81,7 @@ class RemoteResource extends StreamableResource {
             $this->meta = stream_get_meta_data($this->resource);
         }
 
-        return $key ? (array_get($this->meta, $key) ?: $default) : $this->meta;
+        return $key ? (Arr::get($this->meta, $key) ?: $default) : $this->meta;
     }
 
 }

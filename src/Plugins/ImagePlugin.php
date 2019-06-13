@@ -2,16 +2,13 @@
 
 namespace Objectivehtml\Media\Plugins;
 
+use Exception;
 use Carbon\Carbon;
 use Objectivehtml\Media\Model;
 use Objectivehtml\Media\Support\Applyable;
-use Objectivehtml\Media\Filters\Image\Fit;
 use Objectivehtml\Media\Support\ApplyToImages;
 use Objectivehtml\Media\Services\ImageService;
-use Objectivehtml\Media\Jobs\ExtractColorPalette;
-use Objectivehtml\Media\Conversions\Image\Thumbnail;
 use Objectivehtml\Media\Strategies\ConfigClassStrategy;
-use Objectivehtml\Media\Strategies\JobsConfigClassStrategy;
 
 class ImagePlugin extends Plugin {
 
@@ -19,17 +16,17 @@ class ImagePlugin extends Plugin {
 
     public function jobs(Model $model): array
     {
-        return array_map(JobsConfigClassStrategy::make($model), app(ImageService::class)->config('image.jobs', []));
+        return ConfigClassStrategy::map(app(ImageService::class)->config('image.jobs', []), $model);
     }
 
     public function filters(Model $model): array
     {
-        return array_map(ConfigClassStrategy::make(), app(ImageService::class)->config('image.filters', []));
+        return ConfigClassStrategy::map(app(ImageService::class)->config('image.filters', []));
     }
 
     public function conversions(Model $model): array
     {
-        return array_map(ConfigClassStrategy::make(), app(ImageService::class)->config('image.conversions', []));
+        return ConfigClassStrategy::map(app(ImageService::class)->config('image.conversions', []));
     }
 
     public function doesMeetRequirements(): bool
@@ -39,13 +36,11 @@ class ImagePlugin extends Plugin {
 
     public function created(Model $model)
     {
-        if(!$this->doesApplyToModel($model)) {
-            return;
-        }
-
         if($model->fileExists) {
-            $image = app(ImageService::class)->make($model->path)->orientate();
-            $image->save();
+            $image = app(ImageService::class)
+                ->make($model->path)
+                ->orientate()
+                ->save();
 
             if(!$model->meta->get('exif')) {
                 try {
@@ -66,19 +61,18 @@ class ImagePlugin extends Plugin {
             }
 
             if(!$model->meta->get('taken_at') && $model->exif) {
-                $model->taken_at = $model->exif->DateTimeOriginal ?: $model->exif->DateTime;
-                $model->meta('taken_at', $model->taken_at);
+                try {
+                    $model->taken_at = Carbon::parse($model->exif->DateTimeOriginal ?: $model->exif->DateTime);
+                    $model->meta('taken_at', $model->taken_at);
+                }
+                catch(Exception $e) {
+                    //
+                }
             }
             
             $model->save();
-
+                
             $image->destroy();
-        }
-
-        if(app(ImageService::class)->config('image.colors')) {
-            if(($total = app(ImageService::class)->config('image.colors.total')) && !$model->meta('colors') && $model->fileExists) {
-                ExtractColorPalette::dispatch($model, $total);
-            }
         }
     }
 

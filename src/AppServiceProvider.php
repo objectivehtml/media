@@ -11,7 +11,7 @@ use Objectivehtml\Media\Services\MediaService;
 use Intervention\Image\ImageManagerStatic as Image;
 
 
-class MediaServiceProvider extends ServiceProvider
+class AppServiceProvider extends ServiceProvider
 {
     /**
      * Register bindings in the container.
@@ -20,6 +20,8 @@ class MediaServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        $this->app->register(EventServiceProvider::class);
+
         $this->mergeConfigFrom(
             __DIR__.'/../config/media.php', 'media'
         );
