@@ -104,8 +104,8 @@ return [
     'ffmpeg' => [
         'timeout' => env('FFMPEG_TIMEOUT', 999999),
         'ffmpeg.threads' => env('FFMPEG_THREADS', 12),
-        'ffmpeg.binaries' => env('FFMPEG_BINARIES', '/usr/bin/ffmpeg'),
-        'ffprobe.binaries' => env('FFPROBE_BINARIES', '/usr/bin/ffprobe'),
+        'ffmpeg.binaries' => env('FFMPEG_BINARIES'),
+        'ffprobe.binaries' => env('FFPROBE_BINARIES'),
     ],
 
     /**

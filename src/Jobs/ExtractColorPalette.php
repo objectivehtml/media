@@ -40,11 +40,18 @@ class ExtractColorPalette implements ShouldQueue
      */
     public function handle()
     {
+        if(!$this->model->fileExists) {
+            return;
+        }
+
+        $maxWidth = app(ImageService::class)->config('image.colors.max_width', 600);
+        $maxHidth = app(ImageService::class)->config('image.colors.max_height', 600);
+
         $image = app(ImageService::class)
             ->make($this->model->path)
             ->fit(
-                min($this->model->width, app(ImageService::class)->config('image.colors.max_width', 600)),
-                min($this->model->height, app(ImageService::class)->config('image.colors.max_height', 600))
+                min($this->model->width ?: $maxWidth, $maxWidth),
+                min($this->model->height ?: $maxHidth, $maxHidth)
             );
 
         // Create a Palette instance from the model url

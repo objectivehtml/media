@@ -8,6 +8,7 @@ use Objectivehtml\Media\Plugins\ImagePlugin;
 use Objectivehtml\Media\Plugins\VideoPlugin;
 use Objectivehtml\Media\Services\ImageService;
 use Objectivehtml\Media\Services\MediaService;
+use Objectivehtml\Media\Services\VideoService;
 use Intervention\Image\ImageManagerStatic as Image;
 
 

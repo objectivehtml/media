@@ -34,46 +34,9 @@ class ImagePlugin extends Plugin {
         return extension_loaded('gd') || extension_loaded('imagick');
     }
 
-    public function created(Model $model)
+    public function saving(Model $model)
     {
-        if($model->fileExists) {
-            $image = app(ImageService::class)
-                ->make($model->path)
-                ->orientate()
-                ->save();
-
-            if(!$model->meta->get('exif')) {
-                try {
-                    $model->meta('exif', $image->exif());
-                }
-                catch(NotReadableException $e) {
-                    // If the file can't be read, then it has no exif data...
-                    $model->meta('exif', null);
-                }
-            }
-
-            if(!$model->meta->get('width')) {
-                $model->meta('width', $image->width());
-            }
-
-            if(!$model->meta->get('height')) {
-                $model->meta('height', $image->height());
-            }
-
-            if(!$model->meta->get('taken_at') && $model->exif) {
-                try {
-                    $model->taken_at = Carbon::parse($model->exif->DateTimeOriginal ?: $model->exif->DateTime);
-                    $model->meta('taken_at', $model->taken_at);
-                }
-                catch(Exception $e) {
-                    //
-                }
-            }
-            
-            $model->save();
-                
-            $image->destroy();
-        }
+        app(ImageService::class)->updateMetaData($model);
     }
 
 }

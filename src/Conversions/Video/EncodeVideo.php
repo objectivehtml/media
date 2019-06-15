@@ -6,8 +6,8 @@ use FFMpeg\Media\Video;
 use FFMpeg\Format\Video\X264;
 use Objectivehtml\Media\Model;
 use FFMpeg\Coordinate\Dimension;
-use Objectivehtml\Media\Services\MediaService;
 use Objectivehtml\Media\TemporaryFile;
+use Objectivehtml\Media\Services\VideoService;
 use Objectivehtml\Media\Support\ApplyToVideos;
 use Objectivehtml\Media\Conversions\Conversion;
 use Objectivehtml\Media\Events\VideoEncodingStarted;
@@ -146,9 +146,7 @@ class EncodeVideo extends Conversion implements ConversionInterface {
 
     public function video(Model $model): Video
     {
-        $video = app(MediaService::class)
-            ->ffmpeg()
-            ->open($model->path);
+        $video = app(VideoService::class)->open($model->path);
 
         if($this->width && $this->height) {
             $video->filters()
@@ -182,7 +180,7 @@ class EncodeVideo extends Conversion implements ConversionInterface {
 
     public function defaultContext()
     {
-        return app(MediaService::class)->config('video.encoded_context_key', 'encoded');
+        return app(VideoService::class)->config('video.encoded_context_key', 'encoded');
     }
 
     public function ensureFileExists(string $path)

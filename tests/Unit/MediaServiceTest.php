@@ -6,6 +6,7 @@ use Tests\TestCase;
 use Illuminate\Http\UploadedFile;
 use Objectivehtml\Media\Filters\Image\Crop;
 use Objectivehtml\Media\Services\MediaService;
+use Objectivehtml\Media\Services\VideoService;
 use Objectivehtml\Media\Filters\Image\Greyscale;
 use FFMpeg\FFProbe\DataMapping\StreamCollection;
 use Intervention\Image\ImageManagerStatic as Image;
@@ -34,7 +35,7 @@ class MediaServiceTest extends TestCase
 
         $this->assertThat($resource->mime(), $this->equalTo('image/png'));
         $this->assertThat($resource->extension(), $this->equalTo('png'));
-        $this->assertInternalType('int', $resource->size());
+        $this->assertIsInt($resource->size());
 
         $model = $resource->save();
 
@@ -45,38 +46,19 @@ class MediaServiceTest extends TestCase
         $this->assertTrue($image->height() === $height);
     }
 
-    public function testVideoResourceFromUrl()
+    public function testGettingCreatedDateFromVideo()
     {
-        $resource = app(MediaService::class)->resource('https://staging.coverr.co/s3/mp4/The-strip.mp4');
+        $resource = app(MediaService::class)->resource(__DIR__.'/../src/video.mp4');
 
         $this->assertThat($resource->mime(), $this->equalTo('video/mp4'));
         $this->assertThat($resource->extension(), $this->equalTo('mp4'));
-        $this->assertInternalType('int', $resource->size());
+        $this->assertIsInt($resource->size());
 
         $model = $resource->save();
 
         $this->assertTrue($model->fileExists);
 
-        $this->assertTrue(
-            app(MediaService::class)->ffprobe()->streams($model->path) instanceof StreamCollection
-        );
-    }
-
-    public function testGettingCreatedDaeFromVideo()
-    {
-        $resource = app(MediaService::class)->resource();
-
-        $this->assertThat($resource->mime(), $this->equalTo('video/mp4'));
-        $this->assertThat($resource->extension(), $this->equalTo('mp4'));
-        $this->assertInternalType('int', $resource->size());
-
-        $model = $resource->save();
-
-        $this->assertTrue($model->fileExists);
-
-        $this->assertTrue(
-            app(MediaService::class)->ffprobe()->streams($model->path) instanceof StreamCollection
-        );
+        $this->assertTrue(app(VideoService::class)->ffprobe()->streams($model->path) instanceof StreamCollection);
     }
 
     public function testSavingResource()
