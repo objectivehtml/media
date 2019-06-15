@@ -28,7 +28,7 @@ class ConfigClassStrategy
             return new $class(...$this->args);
         }
         else if(is_array($class) && isset($class[0])) {
-            return new $class[0](...array_marge($this->args, isset($class[1]) ? $class[1] : []));
+            return new $class[0](...array_merge($this->args, isset($class[1]) ? $class[1] : []));
         }
 
         throw new InvalidArgumentException;

@@ -54,6 +54,8 @@ class StaticMediaMethodsTest extends TestCase
             'size' => 1000,
             'filename' => 'test.jpeg'
         ]);
+
+        $model->save();
         
         $this->assertThat(Media::relativePath($model), $this->equalTo('1/test.jpeg'));
     }

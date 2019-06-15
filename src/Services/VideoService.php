@@ -5,7 +5,9 @@ namespace Objectivehtml\Media\Services;
 use FFMpeg\FFMpeg;
 use FFMpeg\FFProbe;
 use FFMpeg\Media\Video;
+use Objectivehtml\Media\Model;
 use FFMpeg\Coordinate\TimeCode;
+use Illuminate\Support\Collection;
 use FFMpeg\FFProbe\DataMapping\StreamCollection;
 
 class VideoService extends Service {
@@ -20,7 +22,7 @@ class VideoService extends Service {
      * @param  string $path
      * @return string
      */
-    public function aspectRatio($width, $height): string
+    public function aspectRatio(float $width, float $height): string
     {
         $gcd = function($width, $height) use (&$gcd) {
             return ($width % $height) ? $gcd($height, $width % $height) : $height;
@@ -37,7 +39,7 @@ class VideoService extends Service {
      * @param  {string} $path
      * @return {int}
      */
-    public function bitRate($path)
+    public function bitRate(string $path)
     {
         return (int) $this->format($path)->get('bit_rate');
     }
@@ -48,7 +50,7 @@ class VideoService extends Service {
      * @param  string $path
      * @return FFMpeg\Coordinate\Dimension
      */
-    public function dimensions($path)
+    public function dimensions(string $path)
     {
         return $this->videos($path)->first()->getDimensions();
     }
@@ -59,7 +61,7 @@ class VideoService extends Service {
      * @param  {string} $path
      * @return {float}
      */
-    public function duration($path)
+    public function duration(string $path)
     {
         return (float) $this->format($path)->get('duration');
     }
@@ -67,27 +69,50 @@ class VideoService extends Service {
     /**
      * Extract a single frame from a video file at a specified time (in seconds).
      *
-     * @param  Objectivehtml\Media\Model  $model
+     * @param  mixed  $subject
      * @param  int  $timeInSeconds
      * @param  FFMpeg\Media\Video  $video
      * @return Objectivehtml\Media\Model
      */
-    public function extractFrame(Model $model, $timeInSeconds = 0, Video $video = null): Model
+    public function extractFrame($subject, $timeInSeconds = 0, Video $video = null): Model
     {
-        $video = $video ?: $this->ffmpeg()->open($model->path);
+        $parent = null;
+        $directory = null;
 
-        $child = $this->model([
+        if($subject instanceof Model) {
+            $parent = $subject;
+            $directory = $subject->directory;
+            $subject = $subject->path;
+        }
+
+        if(is_string($subject)) {
+            $subject = $this->open($subject);
+        }
+
+        $child = app(MediaService::class)->model([
             'context' => 'frame',
-            'disk' => $model->disk,
-            'mime' => 'image/jpeg',
             'extension' => 'jpeg',
-            'directory' => $model->directory,
+            'mime' => 'image/jpeg',
+            'directory' => $directory,
+            'disk' => app(MediaService::class)->config('temp.disk'),
         ]);
 
-        $video->frame(TimeCode::fromSeconds($timeInSeconds))->save($child->path);
-
-        $child->parent()->associate($model);
         $child->save();
+
+        $path = pathinfo($child->relative_path, PATHINFO_DIRNAME);
+
+        if(!app(MediaService::class)->storage()->disk($child->disk)->exists($path)) {
+            app(MediaService::class)->storage()->disk($child->disk)->makeDirectory($path);
+        }
+
+        $subject->frame(TimeCode::fromSeconds($timeInSeconds))->save($child->path);
+        
+        if($parent) {
+            $child->parent()->associate($parent);
+        }
+
+        $child->save();
+        $child->encode();
 
         return $child;
     }
@@ -101,7 +126,7 @@ class VideoService extends Service {
     public function ffmpeg(array $config = []): FFMpeg
     {
         if(!$this->ffmpeg) {
-            $this->ffmpeg = FFMpeg::create(array_merge($this->config('ffmpeg'), $config));
+            $this->ffmpeg = FFMpeg::create(array_merge(app(MediaService::class)->config('ffmpeg'), $config));
         }
 
         return $this->ffmpeg;
@@ -115,7 +140,7 @@ class VideoService extends Service {
     public function ffprobe(array $config = []): FFProbe
     {
         if(!$this->ffprobe) {
-            $this->ffprobe = FFProbe::create(array_merge($this->config('ffmpeg'), $config));
+            $this->ffprobe = FFProbe::create(array_merge(app(MediaService::class)->config('ffmpeg'), $config));
         }
 
         return $this->ffprobe;
@@ -127,9 +152,31 @@ class VideoService extends Service {
      * @param  string $path
      * @return FFMpeg\FFProbe\DataMapping\Format
      */
-    public function format($path): \FFMpeg\FFProbe\DataMapping\Format
+    public function format(string $path): \FFMpeg\FFProbe\DataMapping\Format
     {
         return $this->ffprobe()->format($path);
+    }
+
+    /**
+     * Get the tags of a video.
+     *
+     * @param  string $path
+     * @return FFMpeg\FFProbe\DataMapping\Format
+     */
+    public function tags(string $path): array
+    {
+        return $this->ffprobe()->format($path)->get('tags');
+    }
+
+    /**
+     * Get a tag frmo the video.
+     *
+     * @param  string $path
+     * @return FFMpeg\FFProbe\DataMapping\Format
+     */
+    public function tag(string $path, $key)
+    {
+        return collect($this->tags($path))->get($key);
     }
 
     /**
@@ -138,9 +185,20 @@ class VideoService extends Service {
      * @param  string $path
      * @return int
      */
-    public function height($path): int
+    public function height(string $path): int
     {
         return (int) $this->dimensions($path)->getHeight();
+    }
+
+    /**
+     * Open a video file.
+     *
+     * @param  string $path
+     * @return FFMpeg\Media\Video
+     */
+    public function open(string $path): Video
+    {
+        return $this->ffmpeg()->open($path);
     }
 
     /**
@@ -149,7 +207,7 @@ class VideoService extends Service {
      * @param  string $path
      * @return FFMpeg\FFProbe\DataMapping\StreamCollection
      */
-    public function streams($path): StreamCollection
+    public function streams(string $path): StreamCollection
     {
         return $this->ffprobe()->streams($path);
     }
@@ -160,7 +218,7 @@ class VideoService extends Service {
      * @param  string $path
      * @return FFMpeg\FFProbe\DataMapping\StreamCollection
      */
-    public function videos($path): StreamCollection
+    public function videos(string $path): StreamCollection
     {
         return $this->streams($path)->videos();
     }
@@ -171,9 +229,29 @@ class VideoService extends Service {
      * @param  string $path
      * @return int
      */
-    public function width($path): int
+    public function width(string $path): int
     {
         return (int) $this->dimensions($path)->getWidth();
+    }
+
+    /**
+     * Get the resolutions
+     *
+     * @param  \Objectivehtml\Medial\Model $model
+     * @return Collection
+     */
+    public function resolutions(Model $model): Collection
+    {
+        $resolutions = app(VideoService::class)->config('video.resolutions');
+        
+        return collect($resolutions)
+            ->filter(function($resolution) use ($model) {
+                return $resolution['width'] < $model->width &&
+                       $resolution['height'] < $model->height;
+            })
+            ->sort(function($a, $b) {
+                return $a['width'] * $a['height'] < $b['width'] * $b['height'];
+            });
     }
 
 }

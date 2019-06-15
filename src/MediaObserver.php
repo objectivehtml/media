@@ -34,11 +34,6 @@ class MediaObserver
         if($model->resource() && ($attachTo = $model->resource()->attachTo())) {
             app(MediaService::class)->attachTo($model, $attachTo);
         }
-
-        if(!$model->taken_at) {
-            $model->taken_at = $model->meta->get('taken_at') ?: $model->created_at;
-            $model->save();
-        }
     }
 
     public function creating(Model $model)

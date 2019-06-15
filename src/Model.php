@@ -118,6 +118,10 @@ class Model extends BaseModel
         if(!$this->filename) {
             $this->filename = app(MediaService::class)->filename($this);
         }
+
+        if(!$this->taken_at) {
+            $this->taken_at = now();
+        }
     }
 
     /**
@@ -196,7 +200,7 @@ class Model extends BaseModel
     }
 
     /**
-     * Get the file_exists attribute.
+     * Get the exif attribute.
      *
      * @param $value
      */
@@ -209,6 +213,21 @@ class Model extends BaseModel
         return null;
     }
 
+    /**
+     * Set the exif attribute.
+     *
+     * @param $value
+     */
+    public function setExifAttribute(?array $value)
+    {
+        $this->meta('exif', $value);
+    }
+
+    /**
+     * Get the filesize attribute.
+     *
+     * @return float
+     */
     public function getFilesizeAttribute()
     {
         return app(MediaService::class)->formatBytes($this->size);
@@ -217,9 +236,9 @@ class Model extends BaseModel
     /**
      * Get the file_exists attribute.
      *
-     * @param $value
+     * @return bool
      */
-    public function getFileExistsAttribute()
+    public function getFileExistsAttribute(): bool
     {
         return $this->doesFileExist();
     }
@@ -254,6 +273,16 @@ class Model extends BaseModel
     public function getHeightAttribute()
     {
         return $this->meta->get('height');
+    }
+
+    /**
+     * Get height of an image or video file.
+     *
+     * @param $value
+     */
+    public function setHeightAttribute($value)
+    {
+        return $this->meta('height', $value);
     }
 
     /**
@@ -314,6 +343,16 @@ class Model extends BaseModel
     public function getWidthAttribute()
     {
         return $this->meta->get('width');
+    }
+
+    /**
+     * Get width of an image or video file.
+     *
+     * @param $value
+     */
+    public function setWidthAttribute($value)
+    {
+        return $this->meta('width', $value);
     }
 
     /**
@@ -694,18 +733,16 @@ class Model extends BaseModel
 
         static::observe(MediaObserver::class);
 
-        foreach(app(MediaService::class)->plugins() as $plugin) {
-            if($plugin->doesMeetRequirements()) {
+        app(MediaService::class)
+            ->plugins()
+            ->each(function($plugin) {
                 $plugin->observe(static::class);
-            }
-        }
-
+            });
+        
         static::created(function(Model $model) {
-            if($model->isTemporaryFile()) {
-                return;
+            if(!$model->isTemporaryFile()) {
+                $model->encode();
             }
-
-            $model->encode();
         });
     }
 

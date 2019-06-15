@@ -25,7 +25,8 @@
         "fzaninotto/faker": "^1.8",
         "orchestra/testbench": "~3.8",
         "mockery/mockery": "^1.2",
-        "phpunit/phpunit": "^8.2"
+        "phpunit/phpunit": "^8.2",
+        "php-ffmpeg/php-ffmpeg": "^0.14.0"
     },
     "autoload": {
         "psr-4": {
@@ -37,12 +38,6 @@
             "Tests\\": "tests/"
         }
     },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/PHP-FFMpeg/BinaryDriver.git"
-        }
-    ],
     "extra": {
         "laravel": {
             "providers": [
@@ -55,7 +50,6 @@
         }
     },
     "suggest": {
-        "php-ffmpeg/php-ffmpeg": "php-ffmpeg/php-ffmpeg is required for video support.",
-        "php-ffmpeg/binary-driver:dev-master": "FFMpeg binary package is required for video support."
+        "php-ffmpeg/php-ffmpeg": "php-ffmpeg/php-ffmpeg is required for video support."
     }
 }

@@ -11,6 +11,8 @@ use Objectivehtml\Media\Services\MediaService;
 use Objectivehtml\Media\Filters\Image\Greyscale;
 use Objectivehtml\Media\Conversions\Audio\Waveform;
 use Objectivehtml\Media\Conversions\Video\Homepage;
+use Objectivehtml\Media\Services\VideoService;
+use Objectivehtml\Media\Services\ImageService;
 
 class MediaResourceTest extends TestCase
 {
@@ -19,7 +21,9 @@ class MediaResourceTest extends TestCase
     {
         $file = UploadedFile::fake()->image('test.jpg', 10, 10);
 
-        $resource = app(MediaService::class)->resource($file);
+        $resource = app(MediaService::class)
+            ->resource($file)
+            ->preserveOriginal(true);
 
         $this->assertTrue($resource->preserveOriginal());
 
@@ -175,6 +179,7 @@ class MediaResourceTest extends TestCase
             ]);
 
         $this->assertTrue($model->fileExists);
+
         $this->assertCount(5, $model->children);
     }
 
@@ -195,7 +200,7 @@ class MediaResourceTest extends TestCase
 
     public function testRetrievingTakenAtFromVideo()
     {
-        $tags = app(MediaService::class)
+        $tags = app(VideoService::class)
             ->format(__dir__ . '/../src/iphone.m4v')
             ->get('tags');
 
@@ -205,7 +210,7 @@ class MediaResourceTest extends TestCase
 
     public function testRetrievingTakenAtFromAudio()
     {
-        $tags = app(MediaService::class)
+        $tags = app(VideoService::class)
             ->format(__dir__ . '/../src/guitar.m4a')
             ->get('tags');
 
@@ -215,7 +220,7 @@ class MediaResourceTest extends TestCase
 
     public function testRetrievingTakenAtFromImage()
     {
-        $image = app(MediaService::class)->image(__dir__ . '/../src/image.jpeg');
+        $image = app(ImageService::class)->make(__dir__ . '/../src/image.jpeg');
 
         $exif = $image->exif();
 

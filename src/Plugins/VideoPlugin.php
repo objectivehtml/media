@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Objectivehtml\Media\Model;
 use Objectivehtml\Media\Support\Applyable;
 use Objectivehtml\Media\Support\ApplyToVideos;
+use Objectivehtml\Media\Services\MediaService;
 use Objectivehtml\Media\Services\VideoService;
 use Objectivehtml\Media\Conversions\Video\EncodeVideo;
 use Objectivehtml\Media\Strategies\ConfigClassStrategy;
@@ -33,12 +34,17 @@ class VideoPlugin extends Plugin {
                 $model->meta('bit_rate', app(VideoService::class)->bitRate($model->path));
             }
 
-            if(!$model->meta->get('taken_at')) {
-                $tags = app(VideoService::class)->format($model->path)->get('tags');
-
-                $model->meta('taken_at', (
-                    isset($tags['creation_time']) ? Carbon::parse($tags['creation_time']) : null
-                ));
+            if($model->exif && ($model->exif->DateTimeOriginal || $model->exif->DateTime)) {
+                try {
+                    $model->taken_at = Carbon::parse($model->exif->DateTimeOriginal ?: $model->exif->DateTime);
+                }
+                catch(Exception $e) {
+                    //
+                }
+            }
+            
+            if($taken_at = app(VideoService::class)->tag($model->path, 'creation_time')) {
+                $model->taken_at = Carbon::parse($taken_at);
             }
 
             $model->save();
@@ -47,20 +53,6 @@ class VideoPlugin extends Plugin {
                 app(VideoService::class)->extractFrame($model);
             }
         }
-    }
-
-    public function resolutions(Model $model): array
-    {
-        $resolutions = collect(app(VideoService::class)->config('video.resolutions', []))
-            ->filter(function($resolution) use ($model) {
-                return $resolution['width'] < $model->meta->get('width') &&
-                       $resolution['height'] < $model->meta->get('height');
-            })
-            ->sort(function($a, $b) {
-                return $a['width'] * $a['height'] < $b['width'] * $b['height'];
-            });
-
-        return $resolutions->all();
     }
 
     public function jobs(Model $model): array
@@ -83,9 +75,11 @@ class VideoPlugin extends Plugin {
                 ])
             ])
             ->concat(
-                array_map(function($options) {
-                    return new EncodeVideo($options);
-                }, $this->resolutions($model))
+                app(VideoService::class)
+                    ->resolutions($model)
+                    ->map(function($options) {
+                        return new EncodeVideo($options);
+                    })
             )
             ->all();
     }
@@ -99,7 +93,7 @@ class VideoPlugin extends Plugin {
     {
         if(class_exists('FFMpeg\FFMpeg')) {
             try {
-                $ffmpeg = \FFMpeg\FFMpeg::create(app(VideoService::class)->config('ffmpeg'));
+                $ffmpeg = \FFMpeg\FFMpeg::create(app(MediaService::class)->config('ffmpeg', []));
             }
             catch(Exception $e) {
                 return false;

@@ -60,20 +60,6 @@ class TemporaryFileTest extends TestCase
         });
     }
     
-    public function testTemporaryFileWithFileThatAlreadyExistsLocally()
-    {
-        $file = UploadedFile::fake()->image('test.jpg', 100, 100);
-
-        $original = app(MediaService::class)
-            ->resource($file)
-            ->disk('public')
-            ->save();
-        
-        TemporaryFile::make($original, function($model) use ($original) {
-            dd($original->path, $model->path);
-        });
-    }
-
     public function testCreatingFromUploadedFile()
     {
         $file = UploadedFile::fake()->image('test.jpg', 10, 10);
