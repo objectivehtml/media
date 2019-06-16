@@ -1,6 +1,5 @@
 {
     "name": "objectivehtml/media",
-    "version": "0.3.0",
     "description": "A simple media management package for Laravel.",
     "keywords": ["media", "image", "video", "file", "management"],
     "license": "MIT",
