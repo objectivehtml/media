@@ -284,7 +284,7 @@ class MediaService extends Service {
             }
         }
         catch(\ErrorException $e) {
-            // 
+            //
         }
 
         throw new InvalidResourceException($file);
