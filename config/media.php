@@ -9,16 +9,13 @@ use Objectivehtml\Media\Plugins\ImagePlugin;
 use Objectivehtml\Media\Plugins\VideoPlugin;
 use Objectivehtml\Media\Policies\MediaPolicy;
 use Objectivehtml\Media\Plugins\GeocoderPlugin;
+use Objectivehtml\Media\Jobs\ExtractColorPalette;
 use Objectivehtml\Media\Conversions\Audio\Waveform;
-use Objectivehtml\Media\Conversions\Image\Thumbnail;
 use Objectivehtml\Media\Strategies\FilenameStrategy;
 use Objectivehtml\Media\Strategies\DirectoryStrategy;
 use Objectivehtml\Media\Conversions\PreserveOriginal;
 use Objectivehtml\Media\Strategies\ModelMatchingStrategy;
 use Objectivehtml\Media\Http\Controllers\MediaController;
-use Objectivehtml\Media\Filters\Image\ResizeMaxDimensions;
-use Objectivehtml\Media\Strategies\ObfuscatedDirectoryStrategy;
-use Objectivehtml\Media\Jobs\ExtractColorPalette;
 
 return [
 
