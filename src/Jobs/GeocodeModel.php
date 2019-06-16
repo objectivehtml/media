@@ -34,6 +34,10 @@ class GeocodeModel implements ShouldQueue
      */
     public function handle()
     {
+        if(!$this->shouldGeocodeExif()) {
+            return;
+        }
+        
         $geocoder = new Geocoder;
 
         $addresses = $geocoder->reverse(
@@ -50,5 +54,18 @@ class GeocodeModel implements ShouldQueue
         $this->model->save();
 
         event(new GeocodedMedia($this->model, $response));
+    }
+
+
+    protected function isGeocoded(): bool
+    {
+        return !!$this->model->meta->get('geocoder');
+    }
+
+    protected function shouldGeocodeExif(): bool
+    {
+        return !$this->isGeocoded() && (
+            $this->model->exif && $this->model->exif->latitude && $this->model->exif->longitude
+        );
     }
 }

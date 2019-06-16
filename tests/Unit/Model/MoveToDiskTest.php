@@ -35,6 +35,8 @@ class MoveToDiskTest extends TestCase
 
         $resource = app(MediaService::class)->resource($file)->disk('s3');
 
+        $this->assertThat($resource->disk(), $this->equalTo('s3'));
+
         $model = $resource->save()->fresh();
 
         $this->assertTrue($model->fileExists);

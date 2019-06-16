@@ -14,9 +14,9 @@ class GeocoderPlugin extends Plugin {
 
     public function jobs(Model $model): array
     {
-        return array_filter([
-            $model->shouldGeocodeExif() ? new GeocodeModel($model) : null
-        ]);
+        return [
+            new GeocodeModel($model)
+        ];
     }
 
     public function doesMeetRequirements(): bool

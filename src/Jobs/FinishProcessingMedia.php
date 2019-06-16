@@ -38,6 +38,8 @@ class FinishProcessingMedia implements ShouldQueue
             collect([ $parent = $this->model->parent ?: $this->model ])
                 ->concat($parent->children()->ready()->get())
                 ->each(function($model) {
+                    dd(123);
+                    
                     MoveModelToDisk::dispatch($model, (
                         $model->meta->get('move_to') ?: app(MediaService::class)->config('disk')
                     ));

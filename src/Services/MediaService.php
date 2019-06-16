@@ -197,7 +197,7 @@ class MediaService extends Service {
     public function model(array $attributes = [], StreamableResource $resource = null): Model
     {
         $model = $this->config('model')::make(array_merge(array_filter([
-            'disk' => $this->config('temp.disk'),
+            'disk' => $resource->disk() ?: $this->config('temp.disk'),
             'context' => $resource ? $resource->context() : null,
             'directory' => $resource ? $resource->directory() : null,
             'orig_filename' => $resource ? $resource->originalFilename() : null,

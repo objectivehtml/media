@@ -87,11 +87,15 @@ abstract class StreamableResource implements StreamableResourceInterface, Conver
         ], $attributes ?: []), $this);
     }
 
-    public function disk($value): self
+    public function disk(...$args)
     {
-        $this->meta('move_to', $value);
+        if(isset($args[0])) {
+            $this->meta('disk', $args[0]);
+        
+            return $this;
+        }
 
-        return $this;
+        return $this->meta('disk');
     }
 
     public function save(array $attributes = []): Model

@@ -604,18 +604,6 @@ class Model extends BaseModel
         return $this->ready && !$this->parent->temporary();
     }
 
-    public function isGeocoded(): bool
-    {
-        return !!$this->meta->get('geocoder');
-    }
-
-    public function shouldGeocodeExif(): bool
-    {
-        return !$this->isGeocoded() && (
-            $this->exif && $this->exif->latitude && $this->exif->longitude
-        );
-    }
-
     /**
      * Move the move to another disk and queues the old file for deletion.
      *
