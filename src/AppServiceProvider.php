@@ -9,7 +9,7 @@ use Objectivehtml\Media\Plugins\VideoPlugin;
 use Objectivehtml\Media\Services\ImageService;
 use Objectivehtml\Media\Services\MediaService;
 use Objectivehtml\Media\Services\VideoService;
-use Intervention\Image\ImageManagerStatic as Image;
+use Intervention\Image\Facades\Image as Image;
 
 
 class AppServiceProvider extends ServiceProvider

@@ -4,11 +4,9 @@ namespace Objectivehtml\Media\Conversions\Image;
 
 use Objectivehtml\Media\Model;
 use Objectivehtml\Media\Services\MediaService;
-use Intervention\Image\ImageManagerStatic as Image;
 use Objectivehtml\Media\Filters\Image\Fit;
 use Objectivehtml\Media\Support\ApplyToImages;
 use Objectivehtml\Media\Conversions\Conversion;
-use Objectivehtml\Media\Contracts\StreamableResource;
 use Objectivehtml\Media\Contracts\Conversion as ConversionInterface;
 
 class Thumbnail extends Conversion implements ConversionInterface {

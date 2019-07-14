@@ -6,8 +6,6 @@ use Objectivehtml\Media\Model;
 use Objectivehtml\Media\Services\MediaService;
 use Objectivehtml\Media\Services\VideoService;
 use Objectivehtml\Media\Conversions\Conversion;
-use Intervention\Image\ImageManagerStatic as Image;
-use Objectivehtml\Media\Contracts\StreamableResource;;
 use Objectivehtml\Media\Contracts\Conversion as ConversionInterface;
 use Objectivehtml\Media\Support\ApplyToAudio;
 

@@ -3,7 +3,7 @@
 namespace Objectivehtml\Media\Filters\Image;
 
 use Objectivehtml\Media\Model;
-use Intervention\Image\ImageManagerStatic as Image;
+use Objectivehtml\Media\Services\ImageService;
 use Objectivehtml\Media\Contracts\Filter as FilterInterface;
 
 class Crop extends ImageFilter implements FilterInterface {
@@ -26,7 +26,7 @@ class Crop extends ImageFilter implements FilterInterface {
 
     public function apply(Model $model)
     {
-        $image = Image::make($model->path);
+        $image = app(ImageService::class)->make($model->path);
         $image->crop($this->width, $this->height, $this->x, $this->y);
         $image->save($model->path);
         $image->destroy();
