@@ -6,7 +6,7 @@ use Exception;
 use Carbon\Carbon;
 use Intervention\Image\Image;
 use Objectivehtml\Media\Model;
-use Intervention\Image\ImageManagerStatic as Img;
+use Intervention\Image\Facades\Image as Img;
 
 class ImageService extends Service {
 
