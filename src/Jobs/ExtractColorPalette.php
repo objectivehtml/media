@@ -13,6 +13,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Objectivehtml\Media\Services\ImageService;
 use Objectivehtml\Media\Events\ExtractedColorPalette;
+use Objectivehtml\Media\Services\MediaService;
 
 class ExtractColorPalette implements ShouldQueue
 {
@@ -43,19 +44,24 @@ class ExtractColorPalette implements ShouldQueue
         if(!$this->model->fileExists) {
             return;
         }
-
+     
         $maxWidth = app(ImageService::class)->config('image.colors.max_width', 600);
-        $maxHidth = app(ImageService::class)->config('image.colors.max_height', 600);
+        $maxHeight = app(ImageService::class)->config('image.colors.max_height', 600);
 
-        $image = app(ImageService::class)
-            ->make($this->model->path)
-            ->fit(
-                min($this->model->width ?: $maxWidth, $maxWidth),
-                min($this->model->height ?: $maxHidth, $maxHidth)
-            );
+        $stream = app(MediaService::class)
+            ->storage()
+            ->disk($this->model->disk)
+            ->readStream($this->model->path);
 
-        // Create a Palette instance from the model url
-        $palette = Palette::fromGd(imagecreatefromstring($image->stream()->getContents()));
+        $resource = imagecreatefromstring(stream_get_contents($stream));
+
+        $resource = imagescale(
+            $resource,
+            min($this->model->width ?: $maxWidth, $maxWidth),
+            min($this->model->height ?: $maxHeight, $maxHeight)
+        );
+        
+        $palette = Palette::fromGd($resource);
 
         // an extractor is built from a palette
         $extractor = new ColorExtractor($palette);

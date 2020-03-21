@@ -18,6 +18,7 @@ use Objectivehtml\Media\Strategies\ConfigClassStrategy;
 use Objectivehtml\Media\Exceptions\InvalidResourceException;
 use Objectivehtml\Media\Contracts\Strategy as StrategyInterface;
 use Objectivehtml\Media\Exceptions\CannotPreserveOriginalException;
+use Objectivehtml\Media\Resources\TmpResource;
 
 class MediaService extends Service {
 
@@ -251,8 +252,7 @@ class MediaService extends Service {
 
         $model->filename = $this->filename($model);
 
-        $this
-            ->storage()
+        $this->storage()
             ->disk($model->disk)
             ->copy($original->relative_path, $model->relative_path);
 
@@ -281,6 +281,9 @@ class MediaService extends Service {
             }
             else if(is_string($file) && $stream = fopen($file, 'rb')) {
                 return new RemoteResource($stream);
+            }
+            else if(is_resource($file)) {
+                return new TmpResource($file);
             }
         }
         catch(\ErrorException $e) {

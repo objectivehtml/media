@@ -2,6 +2,7 @@
 
 namespace Objectivehtml\Media;
 
+use Exception;
 use Objectivehtml\Media\Jobs\MarkAsReady;
 use Objectivehtml\Media\Jobs\ApplyFilter;
 use Objectivehtml\Media\Support\ExifData;
@@ -362,7 +363,19 @@ class Model extends BaseModel
      */
     public function doesFileExist(): bool
     {
-        return $this->storage()->disk($this->disk)->exists($this->relative_path);
+        return $this->storage()
+            ->disk($this->disk)
+            ->exists($this->relative_path);
+    }
+
+    /**
+     * Does the file exist on the local disk.
+     *
+     * @return boolean
+     */
+    public function doesFileExistLocally(): bool
+    {
+        return file_exists($this->path);
     }
 
     public function replaceResource(StreamableResource $resource)

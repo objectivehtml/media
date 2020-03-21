@@ -5,6 +5,7 @@ use Geocoder\Provider\Chain\Chain;
 use Objectivehtml\Media\TemporaryModel;
 use Objectivehtml\Media\Plugins\AudioPlugin;
 use Geocoder\Provider\GoogleMaps\GoogleMaps;
+use Illuminate\Http\UploadedFile;
 use Objectivehtml\Media\Plugins\ImagePlugin;
 use Objectivehtml\Media\Plugins\VideoPlugin;
 use Objectivehtml\Media\Policies\MediaPolicy;
@@ -16,6 +17,8 @@ use Objectivehtml\Media\Strategies\DirectoryStrategy;
 use Objectivehtml\Media\Conversions\PreserveOriginal;
 use Objectivehtml\Media\Strategies\ModelMatchingStrategy;
 use Objectivehtml\Media\Http\Controllers\MediaController;
+use Objectivehtml\Media\Macros\UploadedFile\ModelMacro;
+use Objectivehtml\Media\Macros\UploadedFile\ResourceMacro;
 
 return [
 
@@ -43,6 +46,19 @@ return [
 
         'delay' => 3600,
         
+    ],
+
+    /**
+     * The macros that are applied. Should be an array of key/values with the
+     * key being the class you want to apply the macro to, and the value being
+     * another array of key/values. The key being the method name, and the value
+     * should be the name of an invokeable class.
+     */
+    'macros' => [
+        UploadedFile::class => [
+            'model' => ModelMacro::class,
+            'resource' => ResourceMacro::class
+        ]
     ],
 
     /**

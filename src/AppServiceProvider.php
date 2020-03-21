@@ -2,6 +2,7 @@
 
 namespace Objectivehtml\Media;
 
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Objectivehtml\Media\Plugins\ImagePlugin;
@@ -57,6 +58,14 @@ class AppServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../config/media.php' => config_path('media.php')
         ], 'config');
+
+        foreach(config('media.macros', []) as $class => $macros) {
+            foreach($macros as $name => $macro) {
+                $class::macro($name, function() use ($macro) {
+                    return (new $macro())($this);
+                });
+            }
+        }
 
         // Set the image configuration defaults.
         Image::configure([

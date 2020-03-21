@@ -11,7 +11,10 @@ class MediaObserver
     public function saving(Model $model)
     {
         if(!$model->size && $model->fileExists) {
-            $model->size = app(MediaService::class)->storage()->disk($model->disk)->size($model->relative_path) ?: 0;
+            $model->size = app(MediaService::class)
+                ->storage()
+                ->disk($model->disk)
+                ->size($model->relative_path) ?: 0;
         }
 
         if($model->mime) {

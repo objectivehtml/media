@@ -2,6 +2,7 @@
 
 namespace Objectivehtml\Media\Resources;
 
+use ErrorException;
 use Mimey\MimeTypes;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -77,8 +78,13 @@ class RemoteResource extends StreamableResource {
 
     public function meta($key = null, $default = null)
     {
-        if(!$this->meta) {
-            $this->meta = stream_get_meta_data($this->resource);
+        try {
+            if(!$this->meta) {
+                $this->meta = stream_get_meta_data($this->resource);
+            }
+        }
+        catch(ErrorException $e) {
+            //
         }
 
         return $key ? (Arr::get($this->meta, $key) ?: $default) : $this->meta;
