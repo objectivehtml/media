@@ -7,7 +7,7 @@ use Illuminate\Http\Testing\File as FakeFile;
 use Symfony\Component\HttpFoundation\File\File;
 use Objectivehtml\Media\Exceptions\InvalidResourceException;
 
-class FileResource extends StreamableResource {
+class FileResource extends Resource {
 
     public function __construct(File $resource)
     {
@@ -36,7 +36,9 @@ class FileResource extends StreamableResource {
 
     public function originalFilename(): string
     {
-        return $this->resource instanceof UploadedFile ? $this->resource->getClientOriginalName() : $this->resource->getFilename();
+        return $this->resource instanceof UploadedFile
+            ? $this->resource->getClientOriginalName()
+            : $this->resource->getFilename();
     }
 
     public function stream()

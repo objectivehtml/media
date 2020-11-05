@@ -7,7 +7,7 @@ use Mimey\MimeTypes;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 
-class RemoteResource extends StreamableResource {
+class RemoteResource extends Resource {
 
     protected $meta;
 

@@ -5,7 +5,7 @@ namespace Objectivehtml\Media\Resources;
 use InvalidArgumentException;
 use Mimey\MimeTypes;
 
-class TmpResource extends StreamableResource {
+class TmpResource extends Resource {
 
     public function __construct($resource)
     {

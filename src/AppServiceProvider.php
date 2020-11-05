@@ -32,6 +32,8 @@ class AppServiceProvider extends ServiceProvider
             return new MediaService($app->filesystem, $app['config']['media']);
         });
 
+        $this->app->alias(MediaService::class, config('media.aliases')[MediaService::class]);
+
         if(app(MediaService::class)->isPluginInstalled(ImagePlugin::class)) {
             $this->app->singleton(ImageService::class, function($app) {
                 return new ImageService($app->filesystem, $app['config']['media']);

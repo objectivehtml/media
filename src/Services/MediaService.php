@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\File\File;
 use Objectivehtml\Media\Resources\FileResource;
 use Objectivehtml\Media\Resources\ImageResource;
 use Objectivehtml\Media\Resources\RemoteResource;
-use Objectivehtml\Media\Contracts\StreamableResource;
+use Objectivehtml\Media\Contracts\Resource;
 use Objectivehtml\Media\Strategies\ConfigClassStrategy;
 use Objectivehtml\Media\Exceptions\InvalidResourceException;
 use Objectivehtml\Media\Contracts\Strategy as StrategyInterface;
@@ -192,10 +192,10 @@ class MediaService extends Service {
      * Create an instance of a Objectivehtml\Media\Model.
      *
      * @param  array $attributes
-     * @param  Objectivehtml\Media\Contracts\StreamableResource $resource
+     * @param  Objectivehtml\Media\Contracts\Resource $resource
      * @return Objectivehtml\Media\Model
      */
-    public function model(array $attributes = [], StreamableResource $resource = null): Model
+    public function model(array $attributes = [], Resource $resource = null): Model
     {
         $model = $this->config('model')::make(array_merge(array_filter([
             'disk' => $resource->disk() ?: $this->config('temp.disk'),
@@ -306,10 +306,10 @@ class MediaService extends Service {
     /**
      * Create and save an instance of Objectivehtml\Media\Model.
      * @param  array  $attributes
-     * @param  Objectivehtml\Media\Contracts\StreamableResource $resource
+     * @param  Objectivehtml\Media\Contracts\Resource $resource
      * @return Objectivehtml\Media\Model
      */
-    public function save(array $attributes = [], StreamableResource $resource = null): Model
+    public function save(array $attributes = [], Resource $resource = null): Model
     {
         $model = $this->model($attributes, $resource);
         $model->save();

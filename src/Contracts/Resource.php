@@ -5,7 +5,7 @@ namespace Objectivehtml\Media\Contracts;
 use Objectivehtml\Media\Model;
 use Illuminate\Contracts\Filesystem\Factory;
 
-interface StreamableResource {
+interface Resource {
 
     public function mime(): ?string;
 

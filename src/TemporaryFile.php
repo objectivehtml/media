@@ -8,7 +8,7 @@ use Objectivehtml\Media\TemporaryModel;
 use Symfony\Component\HttpFoundation\File\File;
 use Objectivehtml\Media\Resources\FileResource;
 use Objectivehtml\Media\Resources\RemoteResource;
-use Objectivehtml\Media\Contracts\StreamableResource;
+use Objectivehtml\Media\Contracts\Resource;
 
 class TemporaryFile {
 
@@ -50,7 +50,7 @@ class TemporaryFile {
         return new static(static::model($model, $resource), $callback);
     }
 
-    public static function model(Model $parent, StreamableResource $resource)
+    public static function model(Model $parent, Resource $resource)
     {
         $model = TemporaryModel::make([
             'extension' => $resource->extension(),

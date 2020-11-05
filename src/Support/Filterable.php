@@ -5,7 +5,7 @@ namespace Objectivehtml\Media\Support;
 use Illuminate\Support\Collection;
 use Objectivehtml\Media\Contracts\Filter as FilterInterface;
 use Objectivehtml\Media\Contracts\Filterable as FilterableInterface;
-use Objectivehtml\Media\Contracts\StreamableResource as StreamableResourceInterface;
+use Objectivehtml\Media\Contracts\Resource as ResourceInterface;
 
 trait Filterable {
 

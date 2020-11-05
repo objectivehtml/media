@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Objectivehtml\Media\Services\MediaService;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Objectivehtml\Media\Exceptions\InvalidResourceException;
-use Objectivehtml\Media\Contracts\StreamableResource as StreamableResourceInterface;
+use Objectivehtml\Media\Contracts\Resource as ResourceInterface;
 
 trait Mediable {
 
@@ -196,9 +196,9 @@ trait Mediable {
      * Get a media resource for the associated file.
      *
      * @param  mixed $resource
-     * @return Objectivehtml\Media\Contracts\StreamableResource
+     * @return Objectivehtml\Media\Contracts\Resource
      */
-    public function resource($resource): StreamableResourceInterface
+    public function resource($resource): ResourceInterface
     {
         return app(MediaService::class)->resource($resource);
     }

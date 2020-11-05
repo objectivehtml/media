@@ -5,7 +5,7 @@ namespace Objectivehtml\Media\Resources;
 use Mimey\MimeTypes;
 use Intervention\Image\Image;
 
-class ImageResource extends StreamableResource {
+class ImageResource extends Resource {
 
     public function __construct(Image $resource)
     {

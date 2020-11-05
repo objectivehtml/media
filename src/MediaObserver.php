@@ -54,8 +54,16 @@ class MediaObserver
 
     public function created(Model $model)
     {
+        dd('put');
+            
+        $strategy =  $model->resource() ?
+            $model->resource()->directoryStrategy() : null;
+        
         if(is_null($model->getAttribute('directory'))) {
-            $model->directory = app(MediaService::class)->directory($model, $model->resource() ? $model->resource()->directoryStrategy() : null);
+            $model->directory = app(MediaService::class)->directory(
+                $model, $strategy
+            );
+
             $model->save();
         }
 

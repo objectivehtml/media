@@ -17,7 +17,7 @@ use Objectivehtml\Media\Jobs\StartProcessingMedia;
 use Objectivehtml\Media\Jobs\FinishProcessingMedia;
 use Illuminate\Database\Eloquent\Model as BaseModel;
 use Objectivehtml\Media\Events\ReplacedModelResource;
-use Objectivehtml\Media\Contracts\StreamableResource;
+use Objectivehtml\Media\Contracts\Resource;
 use Objectivehtml\Media\Exceptions\InvalidResourceException;
 use Objectivehtml\Media\Contracts\Filter as FilterInterface;
 use Objectivehtml\Media\Contracts\Conversion as ConversionInterface;
@@ -378,7 +378,7 @@ class Model extends BaseModel
         return file_exists($this->path);
     }
 
-    public function replaceResource(StreamableResource $resource)
+    public function replaceResource(Resource $resource)
     {
         $response = $this->storage()->disk($this->disk)->put(
             $this->relative_path, $resource->stream()
@@ -439,10 +439,10 @@ class Model extends BaseModel
     /**
      * Get the resource property.
      *
-     * @param  StreamableResource $resource
+     * @param  Resource $resource
      * @return mixed
      */
-    public function getResource(): ?StreamableResource
+    public function getResource(): ?Resource
     {
         if($this->resource) {
             return $this->resource;
@@ -457,10 +457,10 @@ class Model extends BaseModel
     /**
      * Set the resource property.
      *
-     * @param  StreamableResource $resource
+     * @param  Resource $resource
      * @return mixed
      */
-    public function setResource(?StreamableResource $resource)
+    public function setResource(?Resource $resource)
     {
         $this->resource = $resource;
     }
@@ -468,10 +468,10 @@ class Model extends BaseModel
     /**
      * Set the resource property.
      *
-     * @param  StreamableResource $resource
+     * @param  Resource $resource
      * @return mixed
      */
-    public function resource(StreamableResource $resource = null)
+    public function resource(Resource $resource = null)
     {
         if($resource) {
             $this->setResource($resource);

@@ -1,26 +1,30 @@
 <?php
 
-use Objectivehtml\Media\Model;
-use Geocoder\Provider\Chain\Chain;
-use Objectivehtml\Media\TemporaryModel;
-use Objectivehtml\Media\Plugins\AudioPlugin;
 use Geocoder\Provider\GoogleMaps\GoogleMaps;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
+use Objectivehtml\Media\Conversions\Audio\Waveform;
+use Objectivehtml\Media\Conversions\PreserveOriginal;
+use Objectivehtml\Media\Http\Controllers\MediaController;
+use Objectivehtml\Media\Jobs\ExtractColorPalette;
+use Objectivehtml\Media\Macros\UploadedFile\ModelMacro;
+use Objectivehtml\Media\Macros\UploadedFile\ResourceMacro;
+use Objectivehtml\Media\Plugins\AudioPlugin;
+use Objectivehtml\Media\Plugins\GeocoderPlugin;
 use Objectivehtml\Media\Plugins\ImagePlugin;
 use Objectivehtml\Media\Plugins\VideoPlugin;
 use Objectivehtml\Media\Policies\MediaPolicy;
-use Objectivehtml\Media\Plugins\GeocoderPlugin;
-use Objectivehtml\Media\Jobs\ExtractColorPalette;
-use Objectivehtml\Media\Conversions\Audio\Waveform;
-use Objectivehtml\Media\Strategies\FilenameStrategy;
+use Objectivehtml\Media\Services\MediaService;
 use Objectivehtml\Media\Strategies\DirectoryStrategy;
-use Objectivehtml\Media\Conversions\PreserveOriginal;
+use Objectivehtml\Media\Strategies\FilenameStrategy;
 use Objectivehtml\Media\Strategies\ModelMatchingStrategy;
-use Objectivehtml\Media\Http\Controllers\MediaController;
-use Objectivehtml\Media\Macros\UploadedFile\ModelMacro;
-use Objectivehtml\Media\Macros\UploadedFile\ResourceMacro;
+use Objectivehtml\Media\TemporaryModel;
 
 return [
+
+    'aliases' => [
+        MediaService::class => 'media' 
+    ],
 
     /**
      * The Media Eloquent model to use.
@@ -335,11 +339,9 @@ return [
         'api_key' => env('GOOGLE_MAPS_API_KEY'),
 
         'providers' => [
-            Chain::class => [
-                GoogleMaps::class => [
-                    env('GOOGLE_MAPS_LOCALE', 'en-US'),
-                    env('GOOGLE_MAPS_API_KEY'),
-                ],
+            GoogleMaps::class => [
+                env('GOOGLE_MAPS_LOCALE', 'en-US'),
+                env('GOOGLE_MAPS_API_KEY'),
             ],
         ],
 

@@ -3,7 +3,7 @@
 namespace Objectivehtml\Media;
 
 use Objectivehtml\Media\Services\MediaService;
-use Objectivehtml\Media\Contracts\StreamableResource;
+use Objectivehtml\Media\Contracts\Resource;
 
 class TemporaryModel extends Model
 {
@@ -20,10 +20,10 @@ class TemporaryModel extends Model
     /**
      * Set the resource property.
      *
-     * @param  StreamableResource $resource
+     * @param  Resource $resource
      * @return mixed
      */
-    public function setResource(?StreamableResource $resource)
+    public function setResource(?Resource $resource)
     {
         if($this->exists) {
             $this->rewriteResource = true;

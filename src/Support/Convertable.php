@@ -6,7 +6,7 @@ use Objectivehtml\Media\Model;
 use Illuminate\Support\Collection;
 use Objectivehtml\Media\Contracts\Conversion as ConversionInterface;
 use Objectivehtml\Media\Contracts\Convertable as ConvertableInterface;
-use Objectivehtml\Media\Contracts\StreamableResource as StreamableResourceInterface;
+use Objectivehtml\Media\Contracts\Resource as ResourceInterface;
 
 trait Convertable {
 

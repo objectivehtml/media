@@ -7,19 +7,18 @@ use InvalidArgumentException;
 use Objectivehtml\Media\Model;
 use Objectivehtml\Media\Services\MediaService;
 use Illuminate\Contracts\Filesystem\Factory;
-use Symfony\Component\HttpFoundation\File\File;
 use Objectivehtml\Media\Contracts\Convertable as ConvertableInterface;
 use Objectivehtml\Media\Contracts\Filterable as FilterableInterface;
 use Objectivehtml\Media\Contracts\Metable as MetableInterface;
 use Objectivehtml\Media\Contracts\Taggable as TaggableInterface;
-use Objectivehtml\Media\Contracts\StreamableResource as StreamableResourceInterface;
+use Objectivehtml\Media\Contracts\Resource as ResourceInterface;
 use Objectivehtml\Media\Strategies\DirectoryStrategy;
 use Objectivehtml\Media\Support\Metable;
 use Objectivehtml\Media\Support\Taggable;
 use Objectivehtml\Media\Support\Filterable;
 use Objectivehtml\Media\Support\Convertable;
 
-abstract class StreamableResource implements StreamableResourceInterface, ConvertableInterface, FilterableInterface, MetableInterface, TaggableInterface {
+abstract class Resource implements ResourceInterface, ConvertableInterface, FilterableInterface, MetableInterface, TaggableInterface {
 
     use Convertable, Filterable, Metable, Taggable;
 
