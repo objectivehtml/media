@@ -54,8 +54,6 @@ class MediaObserver
 
     public function created(Model $model)
     {
-        dd('put');
-            
         $strategy =  $model->resource() ?
             $model->resource()->directoryStrategy() : null;
         
