@@ -10,7 +10,6 @@ use Objectivehtml\Media\Jobs\ExtractColorPalette;
 use Objectivehtml\Media\Macros\UploadedFile\ModelMacro;
 use Objectivehtml\Media\Macros\UploadedFile\ResourceMacro;
 use Objectivehtml\Media\Plugins\AudioPlugin;
-use Objectivehtml\Media\Plugins\GeocoderPlugin;
 use Objectivehtml\Media\Plugins\ImagePlugin;
 use Objectivehtml\Media\Plugins\VideoPlugin;
 use Objectivehtml\Media\Policies\MediaPolicy;
@@ -111,8 +110,7 @@ return [
     'plugins' => [
         AudioPlugin::class,
         ImagePlugin::class,
-        VideoPlugin::class,
-        GeocoderPlugin::class,
+        VideoPlugin::class
     ],
 
     /**
